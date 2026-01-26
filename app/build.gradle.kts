@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 buildscript {
     repositories {
         google()
@@ -30,6 +33,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+
+        val googleMapsKey = localProperties.getProperty("GOOGLE_MAPS_KEY") ?: ""
+
+        resValue("string", "google_maps_key", googleMapsKey)
     }
 
     buildTypes {

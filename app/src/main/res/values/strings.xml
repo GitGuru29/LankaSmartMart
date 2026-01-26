@@ -1,7 +1,4 @@
 <resources>
     <string name="app_name">LankaSmartMart</string>
-    <!-- Web Client ID from Firebase Console for Google Sign-In -->
-    <string name="default_web_client_id">990055502440-h8ridku5nq606vjsraqmogfgr0vu1pqb.apps.googleusercontent.com</string>
-    <!-- Google Maps API Key -->
-    <string name="google_maps_key">AIzaSyDWXQyysUMRrpSkqAbUSeOpsutZgl6YJ2A</string>
+    <!-- Keys are now injected via build.gradle.kts from local.properties -->
 </resources>
