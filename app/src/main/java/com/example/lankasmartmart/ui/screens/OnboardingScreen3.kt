@@ -23,16 +23,28 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lankasmartmart.R
+import com.example.lankasmartmart.ui.components.OnboardingProgressIndicator
+import com.example.lankasmartmart.ui.components.OnboardingSkipButton
 
 @Composable
 fun OnboardingScreen3(
-    onLetsGo: () -> Unit = {}
+    onLetsGo: () -> Unit = {},
+    onSkip: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
+        // Skip button on top-right  
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, end = 8.dp),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            OnboardingSkipButton(onSkip = onSkip)
+        }
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -57,7 +69,15 @@ fun OnboardingScreen3(
                 )
             }
             
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Progress indicator
+            OnboardingProgressIndicator(
+                currentPage = 2,
+                totalPages = 3
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
             
             // "Your Daily Grocery Partner" text with green styling
             Column(
@@ -113,7 +133,7 @@ fun OnboardingScreen3(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Lets go",
+                    text = "Get Started",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White

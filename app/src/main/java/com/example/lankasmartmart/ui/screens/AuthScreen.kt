@@ -39,7 +39,8 @@ import com.google.android.gms.common.api.ApiException
 @Composable
 fun AuthScreen(
     authViewModel: AuthViewModel = viewModel(),
-    onAuthSuccess: () -> Unit = {}
+    onAuthSuccess: () -> Unit = {},
+    onNavigateToSignUp: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
@@ -112,7 +113,8 @@ fun AuthScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center
         ) {
             // Green Header Section
             Box(
@@ -126,7 +128,7 @@ fun AuthScreen(
                             )
                         )
                     )
-                    .padding(vertical = 48.dp, horizontal = 24.dp)
+                    .padding(vertical = 40.dp, horizontal = 24.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -156,7 +158,7 @@ fun AuthScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .offset(y = (-20).dp),
+                    .padding(top = 16.dp, bottom = 24.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = Color.White,
                 shadowElevation = 4.dp
@@ -237,8 +239,7 @@ fun AuthScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = Color(0xFF2E7D32),
                             modifier = Modifier.clickable {
-                                // Handle sign up navigation
-                                Toast.makeText(context, "Sign up coming soon!", Toast.LENGTH_SHORT).show()
+                                onNavigateToSignUp()
                             }
                         )
                     }

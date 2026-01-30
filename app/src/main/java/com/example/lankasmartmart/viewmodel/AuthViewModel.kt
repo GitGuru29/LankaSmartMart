@@ -101,6 +101,20 @@ class AuthViewModel : ViewModel() {
         }
     }
     
+    // Simplified sign up (creates default UserData)
+    fun signUpWithEmail(email: String, password: String) {
+        signUpWithEmail(
+            email = email,
+            password = password,
+            userData = UserData(
+                uid = "",
+                name = "",
+                email = email,
+                phone = ""
+            )
+        )
+    }
+    
     // Email/Password Login
     fun loginWithEmail(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {

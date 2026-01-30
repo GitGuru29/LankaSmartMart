@@ -28,6 +28,7 @@ import com.example.lankasmartmart.ui.screens.WelcomeScreen
 import com.example.lankasmartmart.ui.screens.OnboardingScreen
 import com.example.lankasmartmart.ui.screens.OnboardingScreen2
 import com.example.lankasmartmart.ui.screens.OnboardingScreen3
+import com.example.lankasmartmart.ui.screens.SignUpScreen
 import com.example.lankasmartmart.ui.screens.PersonalInfoScreen
 import com.example.lankasmartmart.ui.screens.AddressesScreen
 import com.example.lankasmartmart.ui.screens.MapAddressPickerScreen
@@ -73,6 +74,7 @@ sealed class Screen {
     object Onboarding3 : Screen()
     object Splash : Screen()
     object Auth : Screen()
+    object SignUp : Screen()
     object Home : Screen()
     object Cart : Screen()
     object Search : Screen()
@@ -115,6 +117,9 @@ fun LankaSmartMartApp() {
             OnboardingScreen(
                 onGetStarted = {
                     currentScreen = Screen.Onboarding2
+                },
+                onSkip = {
+                    currentScreen = Screen.Auth
                 }
             )
         }
@@ -122,12 +127,18 @@ fun LankaSmartMartApp() {
             OnboardingScreen2(
                 onNext = {
                     currentScreen = Screen.Onboarding3
+                },
+                onSkip = {
+                    currentScreen = Screen.Auth
                 }
             )
         }
         is Screen.Onboarding3 -> {
             OnboardingScreen3(
                 onLetsGo = {
+                    currentScreen = Screen.Auth
+                },
+                onSkip = {
                     currentScreen = Screen.Auth
                 }
             )
@@ -144,6 +155,20 @@ fun LankaSmartMartApp() {
                 onAuthSuccess = {
                     isAuthenticated = true
                     currentScreen = Screen.Home
+                },
+                onNavigateToSignUp = {
+                    currentScreen = Screen.SignUp
+                }
+            )
+        }
+        is Screen.SignUp -> {
+            SignUpScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = {
+                    currentScreen = Screen.Auth
+                },
+                onNavigateToLogin = {
+                    currentScreen = Screen.Auth
                 }
             )
         }
