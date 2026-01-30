@@ -25,6 +25,7 @@ import com.example.lankasmartmart.ui.screens.ProfileScreen
 import com.example.lankasmartmart.ui.screens.SearchScreen
 import com.example.lankasmartmart.ui.screens.SplashScreen
 import com.example.lankasmartmart.ui.screens.WelcomeScreen
+import com.example.lankasmartmart.ui.screens.OnboardingScreen
 import com.example.lankasmartmart.ui.screens.PersonalInfoScreen
 import com.example.lankasmartmart.ui.screens.AddressesScreen
 import com.example.lankasmartmart.ui.screens.MapAddressPickerScreen
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
 
 sealed class Screen {
     object Welcome : Screen()
+    object Onboarding : Screen()
     object Splash : Screen()
     object Auth : Screen()
     object Home : Screen()
@@ -101,6 +103,13 @@ fun LankaSmartMartApp() {
         is Screen.Welcome -> {
             WelcomeScreen(
                 onNavigateToAuth = {
+                    currentScreen = Screen.Onboarding
+                }
+            )
+        }
+        is Screen.Onboarding -> {
+            OnboardingScreen(
+                onGetStarted = {
                     currentScreen = Screen.Auth
                 }
             )
