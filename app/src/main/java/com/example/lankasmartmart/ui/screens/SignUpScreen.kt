@@ -58,7 +58,7 @@ fun SignUpScreen(
     var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var selectedCountryCode by remember { mutableStateOf("+1 🇺🇸") }
+    var selectedCountryCode by remember { mutableStateOf("+94 🇱🇰") }
     
     // Google Sign-In setup
     val googleSignInClient = remember {
@@ -295,12 +295,11 @@ fun SignUpScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Country Code selector
+                        // Country Code selector (Fixed to Sri Lanka)
                         Surface(
                             modifier = Modifier
                                 .width(100.dp)
-                                .height(56.dp)
-                                .clickable { /* Show country picker */ },
+                                .height(56.dp),
                             shape = RoundedCornerShape(12.dp),
                             color = Color(0xFFF5F5F5),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE6EAF0))
@@ -310,18 +309,12 @@ fun SignUpScreen(
                                     .fillMaxSize()
                                     .padding(horizontal = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
                                     text = selectedCountryCode,
                                     fontSize = 14.sp,
                                     color = Color(0xFF212121)
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "Select country",
-                                    tint = Color(0xFF757575),
-                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }

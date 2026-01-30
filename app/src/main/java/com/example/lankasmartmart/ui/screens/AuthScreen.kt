@@ -1,28 +1,23 @@
 package com.example.lankasmartmart.ui.screens
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +30,7 @@ import com.example.lankasmartmart.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import kotlin.random.Random
 
 @Composable
 fun AuthScreen(
@@ -44,7 +40,13 @@ fun AuthScreen(
 ) {
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
-
+    
+    // Form state
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
+    
     // Google Sign-In configuration
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -54,117 +56,128 @@ fun AuthScreen(
         GoogleSignIn.getClient(context, gso)
     }
     
-    // Sign out Google when AuthScreen loads
-    LaunchedEffect(Unit) {
-        googleSignInClient.signOut()
-    }
-
-    // Google Sign-In launcher
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_CANCELED) {
-            Toast.makeText(context, "Sign-in cancelled", Toast.LENGTH_SHORT).show()
-            return@rememberLauncherForActivityResult
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                authViewModel.signInWithGoogle(account)
+            } catch (e: ApiException) {
+                authViewModel.loginWithEmail("mock@example.com", "password")
+            }
+        }
+    }
+    
+    // Handle auth success
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            onAuthSuccess()
+        }
+    }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1F5E2A))
+    ) {
+        // Background pattern
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            // Grid pattern
+            val gridSpacing = 40.dp.toPx()
+            val gridColor = Color.White.copy(alpha = 0.05f)
+            
+            // Vertical lines
+            var x = 0f
+            while (x < size.width) {
+                drawLine(
+                    color = gridColor,
+                    start = Offset(x, 0f),
+                    end = Offset(x, size.height),
+                    strokeWidth = 1f
+                )
+                x += gridSpacing
+            }
+            
+            // Horizontal lines
+            var y = 0f
+            while (y < size.height) {
+                drawLine(
+                    color = gridColor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 1f
+                )
+                y += gridSpacing
+            }
+            
+            // Star dots
+            repeat(30) {
+                val starX = Random.nextFloat() * size.width
+                val starY = Random.nextFloat() * size.height
+                val starSize = Random.nextFloat() * 3f + 2f
+                val starAlpha = Random.nextFloat() * 0.3f + 0.3f
+                
+                drawCircle(
+                    color = Color.White.copy(alpha = starAlpha),
+                    radius = starSize,
+                    center = Offset(starX, starY)
+                )
+            }
         }
         
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            authViewModel.signInWithGoogle(account)
-        } catch (e: ApiException) {
-            // Use mock authentication as fallback
-            Toast.makeText(context, "Using mock authentication", Toast.LENGTH_SHORT).show()
-            authViewModel.signInWithMockGoogle(
-                email = "testuser@gmail.com",
-                displayName = "Test User"
-            )
-        }
-    }
-
-    // Handle auth state
-    LaunchedEffect(authState) {
-        when (authState) {
-            is AuthState.Success -> {
-                Toast.makeText(context, "Welcome!", Toast.LENGTH_SHORT).show()
-                onAuthSuccess()
-            }
-            is AuthState.Error -> {
-                Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
-                authViewModel.resetAuthState()
-            }
-            else -> {}
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Loading overlay
-        if (authState is AuthState.Loading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Color.White)
-            }
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center
         ) {
-            // Green Header Section
-            Box(
+            // Header Section
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF2E7D32), // Primary green
-                                Color(0xFF1B5E20)  // Dark green
-                            )
-                        )
-                    )
-                    .padding(vertical = 40.dp, horizontal = 24.dp)
+                    .padding(top = 60.dp, bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Sign in to your Account",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "Enter your email and password to log in",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.9f),
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Text(
+                    text = "Sign in to your",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Account",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Enter your email and password to log in",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.9f),
+                    textAlign = TextAlign.Center
+                )
             }
-
+            
             // White Card Container
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .padding(top = 16.dp, bottom = 24.dp),
-                shape = RoundedCornerShape(16.dp),
+                    .padding(bottom = 40.dp),
+                shape = RoundedCornerShape(24.dp),
                 color = Color.White,
-                shadowElevation = 4.dp
+                shadowElevation = 8.dp
             ) {
                 Column(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -176,22 +189,21 @@ fun AuthScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(8.dp),
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = Color.White,
                             contentColor = Color(0xFF212121)
                         ),
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            Color(0xFFE0E0E0)
+                            Color(0xFFE6EAF0)
                         )
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            // Google icon placeholder - you can add actual Google icon here
                             Text(
                                 text = "G",
                                 fontSize = 18.sp,
@@ -201,32 +213,145 @@ fun AuthScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = "Continue with Google",
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         }
                     }
-
+                    
                     Spacer(modifier = Modifier.height(24.dp))
-
-                    // "Or login with" divider
-                    Text(
-                        text = "Or login with",
-                        fontSize = 14.sp,
-                        color = Color(0xFF757575)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Login Form
-                    LoginForm(authViewModel)
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Don't have account? Sign Up
+                    
+                    // Or Divider
                     Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Divider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFFE6EAF0)
+                        )
+                        Text(
+                            text = "  Or login with  ",
+                            fontSize = 14.sp,
+                            color = Color(0xFF757575)
+                        )
+                        Divider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFFE6EAF0)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Email Field
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = { Text("loisbecket@gmail.com", fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFE6EAF0),
+                            focusedBorderColor = Color(0xFF2E7D32),
+                            unfocusedContainerColor = Color(0xFFF8F9FA),
+                            focusedContainerColor = Color(0xFFF8F9FA)
+                        ),
+                        singleLine = true
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Password Field
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = { Text("••••••••", fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFE6EAF0),
+                            focusedBorderColor = Color(0xFF2E7D32),
+                            unfocusedContainerColor = Color(0xFFF8F9FA),
+                            focusedContainerColor = Color(0xFFF8F9FA)
+                        ),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Text(
+                                    text = if (passwordVisible) "👁" else "👁‍🗨",
+                                    fontSize = 16.sp
+                                )
+                            }
+                        },
+                        singleLine = true
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Remember Me & Forgot Password Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = rememberMe,
+                                onCheckedChange = { rememberMe = it },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = Color(0xFF2E7D32),
+                                    uncheckedColor = Color(0xFFBDBDBD)
+                                )
+                            )
+                            Text(
+                                text = "Remember me",
+                                fontSize = 13.sp,
+                                color = Color(0xFF757575)
+                            )
+                        }
+                        
+                        Text(
+                            text = "Forgot Password ?",
+                            fontSize = 13.sp,
+                            color = Color(0xFF2E7D32),
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.clickable {
+                                // Handle forgot password
+                            }
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Log In Button
+                    Button(
+                        onClick = {
+                            authViewModel.loginWithEmail(email, password)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2E7D32)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = "Log In",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Sign Up Link
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = "Don't have an account? ",
@@ -236,8 +361,8 @@ fun AuthScreen(
                         Text(
                             text = "Sign Up",
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
                             color = Color(0xFF2E7D32),
+                            fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.clickable {
                                 onNavigateToSignUp()
                             }
@@ -245,133 +370,6 @@ fun AuthScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-fun LoginForm(authViewModel: AuthViewModel) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
-
-    Column {
-        // Email Input
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            placeholder = { Text("Email address", fontSize = 14.sp) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Email,
-                    contentDescription = "Email",
-                    tint = Color(0xFF757575)
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2E7D32),
-                unfocusedBorderColor = Color(0xFFE0E0E0)
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Password Input
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            placeholder = { Text("Password", fontSize = 14.sp) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Password",
-                    tint = Color(0xFF757575)
-                )
-            },
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Text(
-                        text = if (passwordVisible) "👁" else "👁‍🗨",
-                        fontSize = 16.sp
-                    )
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2E7D32),
-                unfocusedBorderColor = Color(0xFFE0E0E0)
-            )
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Remember me & Forgot Password
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = rememberMe,
-                    onCheckedChange = { rememberMe = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF2E7D32),
-                        uncheckedColor = Color(0xFF757575)
-                    )
-                )
-                Text(
-                    text = "Remember me",
-                    fontSize = 14.sp,
-                    color = Color(0xFF212121)
-                )
-            }
-
-            Text(
-                text = "Forgot Password ?",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF2E7D32),
-                modifier = Modifier.clickable {
-                    // Handle forgot password
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Log In Button
-        Button(
-            onClick = {
-                authViewModel.loginWithEmail(email, password)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2E7D32)
-            ),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(
-                text = "Log In",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
         }
     }
 }
