@@ -27,6 +27,7 @@ import com.example.lankasmartmart.ui.screens.SplashScreen
 import com.example.lankasmartmart.ui.screens.WelcomeScreen
 import com.example.lankasmartmart.ui.screens.OnboardingScreen
 import com.example.lankasmartmart.ui.screens.OnboardingScreen2
+import com.example.lankasmartmart.ui.screens.OnboardingScreen3
 import com.example.lankasmartmart.ui.screens.PersonalInfoScreen
 import com.example.lankasmartmart.ui.screens.AddressesScreen
 import com.example.lankasmartmart.ui.screens.MapAddressPickerScreen
@@ -69,6 +70,7 @@ sealed class Screen {
     object Welcome : Screen()
     object Onboarding : Screen()
     object Onboarding2 : Screen()
+    object Onboarding3 : Screen()
     object Splash : Screen()
     object Auth : Screen()
     object Home : Screen()
@@ -119,6 +121,13 @@ fun LankaSmartMartApp() {
         is Screen.Onboarding2 -> {
             OnboardingScreen2(
                 onNext = {
+                    currentScreen = Screen.Onboarding3
+                }
+            )
+        }
+        is Screen.Onboarding3 -> {
+            OnboardingScreen3(
+                onLetsGo = {
                     currentScreen = Screen.Auth
                 }
             )
