@@ -3,8 +3,7 @@ package com.example.lankasmartmart.ui.screens
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -15,26 +14,35 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lankasmartmart.R
 import com.example.lankasmartmart.model.Category
-import com.example.lankasmartmart.data.ProductSeeder
-import com.example.lankasmartmart.utils.extractName
+import com.example.lankasmartmart.model.Product
+import com.example.lankasmartmart.ui.theme.*
 import com.example.lankasmartmart.viewmodel.AuthViewModel
 import com.example.lankasmartmart.viewmodel.ShopViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.util.*
 
 @Composable
 fun HomeScreen(
@@ -46,64 +54,22 @@ fun HomeScreen(
     onSearchClick: () -> Unit = {}
 ) {
     val categories by shopViewModel.categories.collectAsState()
-    val currentUserData = authViewModel.currentUserData
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val scope = rememberCoroutineScope()
+    val products by shopViewModel.products.collectAsState()
+    val scrollState = rememberScrollState()
     
-    var userCity by remember { mutableStateOf("Detecting...") }
-    var locationPermissionGranted by remember { mutableStateOf(false) }
+    // Separate products for sections
+    val exclusiveProducts = remember(products) { products.take(5) }
+    val bestSellingProducts = remember(products) { products.takeLast(5) }
     
-    // ONE-TIME: Seed products to Firestore
-    LaunchedEffect(Unit) {
-        scope.launch {
-            val seeder = ProductSeeder()
-            seeder.seedProducts()
-        }
-    }
-    
-    // Location permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        locationPermissionGranted = isGranted
-    }
-    
-    // Request location permission and get city
-    LaunchedEffect(Unit) {
-        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        delay(500) // Give time for permission dialog
-        
-        try {
-            val locationHelper = com.example.lankasmartmart.utils.LocationHelper(context)
-            val city = locationHelper.getCurrentCity()
-            userCity = city
-        } catch (e: Exception) {
-            userCity = "Sri Lanka"
-        }
-    }
-    
-    val greeting = remember {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        when (hour) {
-            in 0..11 -> "Good Morning"
-            in 12..16 -> "Good Afternoon"
-            else -> "Good Evening"
-        }
-    }
-    
-    val displayName = remember(currentUserData?.name) {
-        currentUserData?.name?.takeIf { it.isNotEmpty() }?.extractName() ?: "Guest"
-    }
+    // Bottom Nav State
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0.dp), // Extend behind system bars
+        containerColor = Color.White,
         bottomBar = {
-            BottomNavigationBar(
-                onHomeClick = {},
-                onSearchClick = onSearchClick,
-                onCartClick = onCartClick,
-                onProfileClick = onProfileClick
+            GroceryBottomNavBar(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it }
             )
         }
     ) { paddingValues ->
@@ -111,240 +77,325 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(scrollState)
         ) {
-            // Beautiful Header with Gradient - Extends to top
-            val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+            // Header Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Carrot Icon (Emoji fallback)
+                Text(
+                    text = "🥕",
+                    fontSize = 24.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Location",
+                        tint = Color(0xFF4C4F4D),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Dhaka, Banassre",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF4C4F4D)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Search Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(4.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    )
-                    .padding(top = statusBarHeight) // Add padding for status bar/camera
-                    .padding(horizontal = 20.dp, vertical = 18.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = greeting,
-                            fontSize = 14.sp,
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = displayName,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = " ☀️",
-                                fontSize = 20.sp
-                            )
-                        }
-                    }
-                    
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color.White.copy(alpha = 0.2f)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.LocationOn,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = userCity,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                            Text(
-                                text = "Delivering to",
-                                fontSize = 10.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Premium Search Bar
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp)
+                    .height(52.dp)
+                    .background(Color(0xFFF2F3F2), RoundedCornerShape(15.dp))
                     .clickable { onSearchClick() },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(6.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                contentAlignment = Alignment.CenterStart
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        tint = Color(0xFF181B19)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Search groceries, vegetables, fruits...",
-                        fontSize = 15.sp,
-                        color = Color(0xFF9E9E9E)
+                        text = "Search Store",
+                        fontSize = 14.sp,
+                        color = Color(0xFF7C7C7C)
                     )
                 }
             }
-
-            // Eye-Catching Promotional Banners - Compact
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Promo Banner
+            PromoBanner()
+            
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // Exclusive Offer
+            SectionHeader(title = "Exclusive Offer", onSeeAll = {})
+            Spacer(modifier = Modifier.height(16.dp))
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp),
-                modifier = Modifier.height(85.dp) // Reduced height
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(listOf(
-                    Banner("Fresh Vegetables", "20% Off", "🥬", Color(0xFF42A5F5)),  // Medium blue
-                    Banner("Dairy Products", "Buy 2 Get 1", "🥛", Color(0xFF1976D2)), // Dark blue
-                    Banner("Fresh Fruits", "15% Off", "🍎", Color(0xFF64B5F6))        // Light blue
-                )) { banner ->
-                    PremiumBannerCard(banner)
+                items(exclusiveProducts) { product ->
+                    GroceryProductCard(product = product)
                 }
             }
+            
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // Best Selling
+            SectionHeader(title = "Best Selling", onSeeAll = {})
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(bestSellingProducts) { product ->
+                    GroceryProductCard(product = product)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // Groceries Categories
+            SectionHeader(title = "Groceries", onSeeAll = { onCategoryClick("all") })
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(categories) { category ->
+                    CategoryChip(category = category)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // Product Grid (Using FlowRow equivalent manually or fixed grid)
+            // Note: LazyVerticalGrid cannot be nested in a scrollable Column easily without fixed height.
+            // Using a simple Column for the grid items for this example or a manual grid.
+            SectionHeader(title = "All Products", onSeeAll = {})
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp)
+            ) {
+                val chunkedProducts = products.chunked(2)
+                chunkedProducts.forEach { rowProducts ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        rowProducts.forEach { product ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                GroceryProductCard(product = product, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                        if (rowProducts.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(80.dp)) // Padding for bottom nav
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(18.dp))
+@Composable
+fun PromoBanner() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .height(115.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(Color(0xFFECF8EF), Color(0xFFF2FDF5))
+                )
+            )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left Image Placeholder
+            Box(
+                modifier = Modifier
+                    .weight(0.4f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("🥬", fontSize = 48.sp)
+            }
+            
+            // Right Text
+            Column(
+                modifier = Modifier
+                    .weight(0.6f)
+                    .padding(end = 16.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = "Fresh Vegetables",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF181725)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Get Up To 40% OFF",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = GroceryGreen
+                )
+            }
+        }
+        
+        // Dots
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Box(modifier = Modifier.size(8.dp).background(GroceryGreen, CircleShape))
+            Box(modifier = Modifier.size(8.dp).background(Color.LightGray, CircleShape))
+            Box(modifier = Modifier.size(8.dp).background(Color.LightGray, CircleShape))
+        }
+    }
+}
 
-            // Section Title
-            Row(
+@Composable
+fun SectionHeader(title: String, onSeeAll: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF181725)
+        )
+        Text(
+            text = "See all",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = GroceryGreen,
+            modifier = Modifier.clickable { onSeeAll() }
+        )
+    }
+}
+
+@Composable
+fun GroceryProductCard(
+    product: Product,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .width(173.dp)
+            .height(250.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, Color(0xFFE2E2E2))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        ) {
+            // Image
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
+                    .height(100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Using emoji/icon as placeholder if no image
+                Text(text = "🍎", fontSize = 50.sp) 
+                
+                // Actual Image impl (commented out as context needed for coil)
+                /*
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+                */
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Name
+            Text(
+                text = product.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF181725),
+                maxLines = 1
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // Unit
+            Text(
+                text = product.unit,
+                fontSize = 14.sp,
+                color = Color(0xFF7C7C7C)
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Price and Add Button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Shop by Category",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    text = "$${product.price}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF181725)
                 )
-                TextButton(onClick = {}) {
-                    Text(
-                        text = "See All",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Beautiful Category Grid - FIXED POSITION, NO SCROLLING
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 16.dp),
-                modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = false // Disable scrolling completely
-            ) {
-                items(categories) { category ->
-                    EyeCatchingCategoryCard(
-                        category = category,
-                        onClick = { onCategoryClick(category.id) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PremiumBannerCard(banner: Banner) {
-    Card(
-        modifier = Modifier
-            .width(260.dp)
-            .fillMaxHeight(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            banner.color,
-                            banner.color.copy(alpha = 0.8f)
-                        )
-                    )
-                )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Emoji in Circle - Smaller
+                
                 Surface(
-                    shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.3f),
-                    modifier = Modifier.size(48.dp)
+                    shape = RoundedCornerShape(17.dp),
+                    color = GroceryGreen,
+                    modifier = Modifier.size(45.dp).clickable { /* Add to cart */ }
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = banner.emoji,
-                            fontSize = 24.sp
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                Column {
-                    Text(
-                        text = banner.title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add",
+                        tint = Color.White,
+                        modifier = Modifier.padding(12.dp)
                     )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = Color.White.copy(alpha = 0.3f)
-                    ) {
-                        Text(
-                            text = banner.subtitle,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
-                    }
                 }
             }
         }
@@ -352,147 +403,80 @@ fun PremiumBannerCard(banner: Banner) {
 }
 
 @Composable
-fun EyeCatchingCategoryCard(
-    category: Category,
-    onClick: () -> Unit
-) {
-    Card(
+fun CategoryChip(category: Category) {
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(130.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Subtle gradient background
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFFF5F5F5),
-                                Color.White
-                            )
-                        )
-                    )
+            .background(
+                color = getCategoryColor(category.id).copy(alpha = 0.15f), 
+                shape = RoundedCornerShape(12.dp)
             )
-            
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Icon with colorful background
-                Surface(
-                    shape = CircleShape,
-                    color = getCategoryColor(category.id),
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = category.icon,
-                            fontSize = 32.sp
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Text(
-                    text = category.name,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
-            }
-        }
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Icon/Image
+        Text(text = category.icon, fontSize = 24.sp) // Use emoji icon from category
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = category.name,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF3E423F)
+        )
     }
 }
 
-// Color scheme for categories - Blue monochromatic shades
-fun getCategoryColor(categoryId: String): Color {
-    return when (categoryId) {
-        "groceries" -> Color(0xFFE3F2FD)      // Very light blue
-        "vegetables" -> Color(0xFFBBDEFB)     // Light blue
-        "fruits" -> Color(0xFF90CAF9)         // Medium light blue
-        "dairy" -> Color(0xFFE1F5FE)          // Pale blue
-        "beverages" -> Color(0xFFB3E5FC)      // Sky blue (already blue!)
-        "snacks" -> Color(0xFFCFE8FC)         // Light sky blue
-        "personal_care" -> Color(0xFFBBDEFB)  // Light blue
-        "household" -> Color(0xFFD1E8F5)      // Soft blue
-        "stationery" -> Color(0xFFDCEEFB)     // Pale blue
-        else -> Color(0xFFE3F2FD)             // Default light blue
+// Helper to get pastel colors for categories
+fun getCategoryColor(id: String): Color {
+    return when(id) {
+        "vegetables", "fruits" -> GroceryGreen
+        "dairy", "beverages" -> Color(0xFFF8A44C) // Orange pastel
+        "groceries", "snacks" -> Color(0xFFD3B0E0) // Purple pastel
+        else -> Color(0xFF53B175)
     }
 }
 
 @Composable
-fun BottomNavigationBar(
-    onHomeClick: () -> Unit,
-    onSearchClick: () -> Unit,
-    onCartClick: () -> Unit,
-    onProfileClick: () -> Unit
+fun GroceryBottomNavBar(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
 ) {
-    Surface(
-        shadowElevation = 8.dp,
-        color = Color.White
+    NavigationBar(
+        containerColor = Color.White,
+        tonalElevation = 16.dp,
+        modifier = Modifier.shadow(16.dp, shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
     ) {
-        NavigationBar(
-            containerColor = Color.White,
-            tonalElevation = 0.dp,
-            modifier = Modifier.height(64.dp) // Compact height
-        ) {
+        val items = listOf(
+            Triple("Shop", Icons.Outlined.Home, 0),
+            Triple("Explore", Icons.Outlined.Search, 1),
+            Triple("Cart", Icons.Outlined.ShoppingCart, 2),
+            Triple("Favourite", Icons.Outlined.FavoriteBorder, 3),
+            Triple("Account", Icons.Outlined.Person, 4)
+        )
+        
+        items.forEach { (label, icon, index) ->
+            val isSelected = selectedTab == index
             NavigationBarItem(
-                icon = { Icon(Icons.Default.Home, "Home", modifier = Modifier.size(22.dp)) },
-                label = { Text("Home", fontSize = 11.sp) },
-                selected = true,
-                onClick = onHomeClick,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            )
-            
-            NavigationBarItem(
-                icon = {
-                    BadgedBox(
-                        badge = {
-                            Badge(
-                                containerColor = Color(0xFFE53935),
-                                contentColor = Color.White
-                            ) {
-                                Text("3", fontSize = 9.sp)
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.ShoppingCart, "Cart", modifier = Modifier.size(22.dp))
-                    }
+                icon = { 
+                    Icon(
+                        imageVector = icon, 
+                        contentDescription = label,
+                        tint = if (isSelected) GroceryGreen else Color(0xFF181725)
+                    )
                 },
-                label = { Text("Cart", fontSize = 11.sp) },
-                selected = false,
-                onClick = onCartClick
-            )
-            
-            NavigationBarItem(
-                icon = { Icon(Icons.Default.Person, "Profile", modifier = Modifier.size(22.dp)) },
-                label = { Text("Profile", fontSize = 11.sp) },
-                selected = false,
-                onClick = onProfileClick
+                label = { 
+                    Text(
+                        text = label, 
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                        color = if (isSelected) GroceryGreen else Color(0xFF181725)
+                    ) 
+                },
+                selected = isSelected,
+                onClick = { onTabSelected(index) },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent
+                )
             )
         }
     }
 }
-
-data class Banner(
-    val title: String,
-    val subtitle: String,
-    val emoji: String,
-    val color: Color = Color(0xFF42A5F5)  // Medium blue default
-)

@@ -124,3 +124,14 @@ val BlueDark = Color(0xFF1565C0)               // Dark blue
 val BlueExtraDark = Color(0xFF0D47A1)          // Very dark blue
 val BlueNavy = Color(0xFF01579B)               // Navy blue
 val BlueAccent = Color(0xFF82B1FF)             // Bright accent blue
+
+// ============================================================================
+// GROCERY APP PALETTE (New Design)
+// ============================================================================
+val GroceryGreen = Color(0xFF53B175)           // Primary Brand Color
+val GroceryGreenDark = Color(0xFF489E67)       // Darker shade
+val GroceryGreenLight = Color(0xFFE2F3E7)      // Very light green background
+val GroceryTextDark = Color(0xFF181725)        // Main text color
+val GroceryTextGrey = Color(0xFF7C7C7C)        // Secondary text
+val GroceryBorder = Color(0xFFE2E2E2)          // Light borders
+val GroceryBackground = Color(0xFFFFFFFF)      // White background

@@ -169,6 +169,10 @@ fun LankaSmartMartApp() {
                 },
                 onNavigateToLogin = {
                     currentScreen = Screen.Auth
+                },
+                onSignUpSuccess = {
+                    isAuthenticated = true
+                    currentScreen = Screen.Home
                 }
             )
         }

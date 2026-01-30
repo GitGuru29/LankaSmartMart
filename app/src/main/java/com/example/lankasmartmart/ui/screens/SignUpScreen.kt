@@ -46,9 +46,11 @@ import kotlin.random.Random
 fun SignUpScreen(
     authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit = {},
-    onNavigateToLogin: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {},
+    onSignUpSuccess: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val authState by authViewModel.authState.collectAsState()
     
     // Form state
     var firstName by remember { mutableStateOf("") }
@@ -79,6 +81,13 @@ fun SignUpScreen(
             } catch (e: ApiException) {
                 authViewModel.loginWithEmail("mock@example.com", "password")
             }
+        }
+    }
+
+    // Handle auth success
+    LaunchedEffect(authState) {
+        if (authState is com.example.lankasmartmart.viewmodel.AuthState.Success) {
+            onSignUpSuccess()
         }
     }
     
