@@ -274,27 +274,49 @@ fun SignUpScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Date of Birth
+                    val calendar = java.util.Calendar.getInstance()
+                    val year = calendar.get(java.util.Calendar.YEAR)
+                    val month = calendar.get(java.util.Calendar.MONTH)
+                    val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+
+                    val datePickerDialog = android.app.DatePickerDialog(
+                        context,
+                        { _, selectedYear, selectedMonth, selectedDay ->
+                            dateOfBirth = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+                        },
+                        year, month, day
+                    )
+
                     OutlinedTextField(
                         value = dateOfBirth,
-                        onValueChange = { dateOfBirth = it },
+                        onValueChange = { },
+                        readOnly = true,
                         label = { Text("Date of Birth", fontSize = 12.sp) },
                         placeholder = { Text("DD/MM/YYYY") },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { datePickerDialog.show() },
+                        enabled = false, 
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color(0xFFE6EAF0),
                             focusedBorderColor = Color(0xFF2E7D32),
                             unfocusedContainerColor = Color(0xFFF5F5F5),
-                            focusedContainerColor = Color(0xFFF5F5F5)
+                            focusedContainerColor = Color(0xFFF5F5F5),
+                            disabledContainerColor = Color(0xFFF5F5F5),
+                            disabledBorderColor = Color(0xFFE6EAF0),
+                            disabledTextColor = Color.Black,
+                            disabledLabelColor = Color(0xFF7C7C7C),
+                            disabledPlaceholderColor = Color(0xFF7C7C7C)
                         ),
                         trailingIcon = {
                             Text(
                                 text = "📅",
-                                fontSize = 18.sp
+                                modifier = Modifier.clickable { datePickerDialog.show() }
                             )
-                        },
-                        singleLine = true
+                        }
                     )
+
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
