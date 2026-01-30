@@ -24,6 +24,7 @@ import com.example.lankasmartmart.ui.screens.ProductListScreen
 import com.example.lankasmartmart.ui.screens.ProfileScreen
 import com.example.lankasmartmart.ui.screens.SearchScreen
 import com.example.lankasmartmart.ui.screens.SplashScreen
+import com.example.lankasmartmart.ui.screens.WelcomeScreen
 import com.example.lankasmartmart.ui.screens.PersonalInfoScreen
 import com.example.lankasmartmart.ui.screens.AddressesScreen
 import com.example.lankasmartmart.ui.screens.MapAddressPickerScreen
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
 }
 
 sealed class Screen {
+    object Welcome : Screen()
     object Splash : Screen()
     object Auth : Screen()
     object Home : Screen()
@@ -90,12 +92,19 @@ sealed class Screen {
 
 @Composable
 fun LankaSmartMartApp() {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Splash) }
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Welcome) }
     var isAuthenticated by remember { mutableStateOf(false) }
     val shopViewModel: ShopViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
 
     when (val screen = currentScreen) {
+        is Screen.Welcome -> {
+            WelcomeScreen(
+                onNavigateToAuth = {
+                    currentScreen = Screen.Auth
+                }
+            )
+        }
         is Screen.Splash -> {
             SplashScreen(
                 onNavigateToAuth = {
