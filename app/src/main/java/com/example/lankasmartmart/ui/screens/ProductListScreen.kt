@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lankasmartmart.model.Product
 import com.example.lankasmartmart.viewmodel.ShopViewModel
+import coil.compose.AsyncImage
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.painter.ColorPainter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,12 +209,19 @@ fun ProductCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Product Icon (placeholder)
-                Text(
-                    text = "📦",
-                    fontSize = 50.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                // Product Image
+                AsyncImage(
+                    model = product.imageUrl.ifEmpty { "https://placehold.co/400x400/png?text=${product.name}" }, // Fallback if empty
+                    contentDescription = product.name,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Gray.copy(alpha = 0.1f)),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    error = androidx.compose.ui.graphics.painter.ColorPainter(Color.LightGray) // Simple error placeholder
                 )
+                
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Button(
                     onClick = onClick,

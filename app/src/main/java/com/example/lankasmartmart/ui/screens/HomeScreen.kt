@@ -46,7 +46,7 @@ fun HomeScreen(
     onSearchClick: () -> Unit = {}
 ) {
     val categories by shopViewModel.categories.collectAsState()
-    val currentUser = authViewModel.currentUser
+    val currentUserData = authViewModel.currentUserData
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -91,8 +91,8 @@ fun HomeScreen(
         }
     }
     
-    val displayName = remember(currentUser?.displayName) {
-        currentUser?.displayName?.extractName() ?: "Guest"
+    val displayName = remember(currentUserData?.name) {
+        currentUserData?.name?.takeIf { it.isNotEmpty() }?.extractName() ?: "Guest"
     }
 
     Scaffold(

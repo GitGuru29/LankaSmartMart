@@ -42,7 +42,7 @@ fun ProfileScreen(
     onNavigateToHelpSupport: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val currentUser = authViewModel.currentUser
+    val currentUserData = authViewModel.currentUserData
     var showLogoutDialog by remember { mutableStateOf(false) }
     
     // Create Google Sign-In client for logout
@@ -54,11 +54,11 @@ fun ProfileScreen(
         GoogleSignIn.getClient(context, gso)
     }
     
-    val displayName = remember(currentUser?.displayName) {
-        currentUser?.displayName?.extractName() ?: "Guest User"
+    val displayName = remember(currentUserData?.name) {
+        currentUserData?.name?.takeIf { it.isNotEmpty() }?.extractName() ?: "Guest User"
     }
     
-    val userEmail = currentUser?.email ?: "guest@example.com"
+    val userEmail = currentUserData?.email ?: "guest@example.com"
     val userInitial = displayName.firstOrNull()?.uppercase() ?: "G"
     
     Scaffold(
@@ -77,7 +77,7 @@ fun ProfileScreen(
             // Profile Header
             item {
                 ProfileHeader(
-                    photoUrl = currentUser?.photoUrl?.toString(),
+                    photoUrl = null, // Mock users don't have photo URLs
                     userInitial = userInitial,
                     userName = displayName,
                     userEmail = userEmail,

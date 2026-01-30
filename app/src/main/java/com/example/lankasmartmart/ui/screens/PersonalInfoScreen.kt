@@ -46,7 +46,7 @@ fun PersonalInfoScreen(
     onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val currentUser = authViewModel.currentUser
+    val currentUserData = authViewModel.currentUserData
     val scope = rememberCoroutineScope()
     
     // Initialize Cloudinary once
@@ -63,13 +63,13 @@ fun PersonalInfoScreen(
         }
     }
     
-    var name by remember { mutableStateOf(currentUser?.displayName?.extractName() ?: "") }
-    var email by remember { mutableStateOf(currentUser?.email ?: "") }
-    var phone by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(currentUserData?.name?.extractName() ?: "") }
+    var email by remember { mutableStateOf(currentUserData?.email ?: "") }
+    var phone by remember { mutableStateOf(currentUserData?.phone ?: "") }
     var isEditing by remember { mutableStateOf(false) }
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var isUploading by remember { mutableStateOf(false) }
-    var profileImageUrl by remember { mutableStateOf(currentUser?.photoUrl?.toString()) }
+    var profileImageUrl by remember { mutableStateOf<String?>(null) }
     
     // Image picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(

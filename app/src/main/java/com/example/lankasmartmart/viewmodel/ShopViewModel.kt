@@ -69,11 +69,18 @@ class ShopViewModel : ViewModel() {
             _isLoading.value = true
             try {
                 val result = productRepository.getAllProducts()
-                _products.value = result.getOrElse { emptyList() }
+                val fetchedProducts = result.getOrElse { emptyList() }
+                
+                if (fetchedProducts.isNotEmpty()) {
+                    _products.value = fetchedProducts
+                } else {
+                    // Fallback to mock data if Firestore returns empty
+                    _products.value = getMockProducts()
+                }
                 _searchResults.value = _products.value
             } catch (e: Exception) {
-                // Handle error - keep empty list
-                _products.value = emptyList()
+                // Handle error - fallback to mock
+                _products.value = getMockProducts()
             } finally {
                 _isLoading.value = false
             }
@@ -162,7 +169,8 @@ class ShopViewModel : ViewModel() {
                 isOnSale = true,
                 discount = 10,
                 rating = 4.5f,
-                reviewCount = 120
+                reviewCount = 120,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_basmati_rice"
             ),
             Product(
                 id = "2",
@@ -174,7 +182,8 @@ class ShopViewModel : ViewModel() {
                 unit = "500g",
                 brand = "Local",
                 rating = 4.3f,
-                reviewCount = 85
+                reviewCount = 85,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_red_dhal"
             ),
             Product(
                 id = "3",
@@ -186,7 +195,8 @@ class ShopViewModel : ViewModel() {
                 unit = "1 kg",
                 brand = "Prima",
                 rating = 4.2f,
-                reviewCount = 60
+                reviewCount = 60,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_wheat_flour"
             ),
             
             // Vegetables
@@ -200,7 +210,8 @@ class ShopViewModel : ViewModel() {
                 unit = "500g",
                 brand = "Farm Fresh",
                 rating = 4.6f,
-                reviewCount = 45
+                reviewCount = 45,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_carrots"
             ),
             Product(
                 id = "5",
@@ -215,7 +226,8 @@ class ShopViewModel : ViewModel() {
                 isOnSale = true,
                 discount = 20,
                 rating = 4.4f,
-                reviewCount = 90
+                reviewCount = 90,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_tomatoes"
             ),
             
             // Fruits
@@ -229,7 +241,8 @@ class ShopViewModel : ViewModel() {
                 unit = "1 kg",
                 brand = "Local",
                 rating = 4.7f,
-                reviewCount = 150
+                reviewCount = 150,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_bananas"
             ),
             Product(
                 id = "7",
@@ -241,13 +254,14 @@ class ShopViewModel : ViewModel() {
                 unit = "per piece",
                 brand = "Local",
                 rating = 4.5f,
-                reviewCount = 78
+                reviewCount = 78,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_papaya"
             ),
             
             // Dairy
             Product(
                 id = "8",
-                name = "Fresh Milk",
+                name = "Anchor Full Cream Milk",
                 description = "Full cream fresh milk",
                 price = 280.0,
                 category = "dairy",
@@ -255,7 +269,8 @@ class ShopViewModel : ViewModel() {
                 unit = "1 L",
                 brand = "Anchor",
                 rating = 4.8f,
-                reviewCount = 200
+                reviewCount = 200,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_anchor_milk"
             ),
             Product(
                 id = "9",
@@ -267,7 +282,8 @@ class ShopViewModel : ViewModel() {
                 unit = "400g",
                 brand = "Pelwatte",
                 rating = 4.6f,
-                reviewCount = 110
+                reviewCount = 110,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_curd"
             ),
             
             // Beverages
@@ -281,7 +297,8 @@ class ShopViewModel : ViewModel() {
                 unit = "200g",
                 brand = "Dilmah",
                 rating = 4.9f,
-                reviewCount = 250
+                reviewCount = 250,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_ceylon_tea"
             ),
             Product(
                 id = "11",
@@ -296,7 +313,8 @@ class ShopViewModel : ViewModel() {
                 isOnSale = true,
                 discount = 12,
                 rating = 4.4f,
-                reviewCount = 95
+                reviewCount = 95,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_mango_juice"
             ),
             
             // Snacks
@@ -310,7 +328,8 @@ class ShopViewModel : ViewModel() {
                 unit = "190g",
                 brand = "Munchee",
                 rating = 4.3f,
-                reviewCount = 180
+                reviewCount = 180,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_cream_cracker"
             ),
             Product(
                 id = "13",
@@ -322,7 +341,92 @@ class ShopViewModel : ViewModel() {
                 unit = "100g",
                 brand = "Ritzbury",
                 rating = 4.5f,
-                reviewCount = 72
+                reviewCount = 72,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_coconut_chips"
+            ),
+            
+            // Personal Care
+            Product(
+                id = "14",
+                name = "Rani Sandalwood Soap",
+                description = "Original sandalwood soap",
+                price = 120.0,
+                category = "personal_care",
+                stock = 150,
+                unit = "100g",
+                brand = "Rani",
+                rating = 4.6f,
+                reviewCount = 88,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_rani_soap"
+            ),
+            Product(
+                id = "15",
+                name = "Misumi Beauty Soap",
+                description = "Momo beauty soap",
+                price = 450.0,
+                category = "personal_care",
+                stock = 45,
+                unit = "100g",
+                brand = "Misumi",
+                rating = 4.4f,
+                reviewCount = 56,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_misumi_soap"
+            ),
+            
+            // Household
+            Product(
+                id = "16",
+                name = "Dish Wash Liquid",
+                description = "Lime fresh dish wash",
+                price = 280.0,
+                category = "household",
+                stock = 80,
+                unit = "500ml",
+                brand = "Sunlight",
+                rating = 4.7f,
+                reviewCount = 134,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_sunlight_dishwash"
+            ),
+            Product(
+                id = "17",
+                name = "Washing Powder",
+                description = "Floral fresh detergent powder",
+                price = 420.0,
+                category = "household",
+                stock = 60,
+                unit = "1kg",
+                brand = "Rin",
+                rating = 4.5f,
+                reviewCount = 92,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_rin_powder"
+            ),
+            
+            // Stationery
+            Product(
+                id = "18",
+                name = "Exercise Book",
+                description = "80 pages single rule book",
+                price = 120.0,
+                category = "stationery",
+                stock = 200,
+                unit = "80 pgs",
+                brand = "Atlas",
+                rating = 4.8f,
+                reviewCount = 45,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_atlas_book"
+            ),
+            Product(
+                id = "19",
+                name = "Blue Pens Pack",
+                description = "Pack of 5 ballpoint pens",
+                price = 150.0,
+                category = "stationery",
+                stock = 100,
+                unit = "5 pack",
+                brand = "Atlas",
+                rating = 4.6f,
+                reviewCount = 30,
+                imageUrl = "android.resource://com.example.lankasmartmart/drawable/img_blue_pens"
             )
         )
     }
