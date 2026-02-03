@@ -60,16 +60,18 @@ fun AuthScreen(
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                authViewModel.signInWithGoogle(account)
-            } catch (e: ApiException) {
-                authViewModel.setErrorMessage("Google Sign-In failed: ${e.statusCode}")
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            authViewModel.signInWithGoogle(account)
+        } catch (e: ApiException) {
+            val errorMessage = when (e.statusCode) {
+                10 -> "Google Sign-In Developer Error (Code 10): SHA-1 fingerprint not configured in Firebase Console"
+                12500 -> "Google Sign-In Error (Code 12500): Google Play Services issue or app not registered"
+                12501 -> "User cancelled Google Sign-In"
+                else -> "Google Sign-In failed: Error code ${e.statusCode}"
             }
-        } else {
-             authViewModel.setErrorMessage("Google Sign-In cancelled")
+            authViewModel.setErrorMessage(errorMessage)
         }
     }
     
