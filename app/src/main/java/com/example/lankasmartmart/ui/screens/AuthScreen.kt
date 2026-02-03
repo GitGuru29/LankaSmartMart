@@ -40,6 +40,7 @@ fun AuthScreen(
 ) {
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+    var showToast by remember { mutableStateOf<String?>(null) }
     
     // Form state
     var email by remember { mutableStateOf("") }
@@ -65,15 +66,27 @@ fun AuthScreen(
                 val account = task.getResult(ApiException::class.java)
                 authViewModel.signInWithGoogle(account)
             } catch (e: ApiException) {
-                authViewModel.loginWithEmail("mock@example.com", "password")
+                authViewModel.setErrorMessage("Google Sign-In failed: ${e.statusCode}")
             }
+        } else {
+             authViewModel.setErrorMessage("Google Sign-In cancelled")
         }
     }
     
-    // Handle auth success
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             onAuthSuccess()
+        } else if (authState is AuthState.Error) {
+             showToast = (authState as AuthState.Error).message
+        }
+    }
+    
+    // Show Toast
+    LaunchedEffect(showToast) {
+        showToast?.let {
+            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
+            showToast = null
+            authViewModel.resetAuthState() // Clear error after showing
         }
     }
     
