@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
+import com.example.lankasmartmart.ui.theme.*
 import com.example.lankasmartmart.utils.extractName
 import com.example.lankasmartmart.viewmodel.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -127,7 +128,7 @@ fun PersonalInfoScreen(
     }
     
     Scaffold(
-        containerColor = Color(0xFFF8FFFE),
+        containerColor = Color.White,
         contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             PersonalInfoTopBar(onBackClick = onBackClick)
@@ -169,8 +170,8 @@ fun PersonalInfoScreen(
                                 .background(
                                     brush = Brush.radialGradient(
                                         colors = listOf(
-                                            MaterialTheme.colorScheme.primary,
-                                            Color(0xFF004D40)
+                                            GroceryGreen,
+                                            GroceryGreenDark
                                         )
                                     )
                                 )
@@ -199,7 +200,7 @@ fun PersonalInfoScreen(
                 // Camera icon badge
                 Surface(
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = GroceryGreen,
                     modifier = Modifier
                         .size(36.dp)
                         .clickable { imagePickerLauncher.launch("image/*") }
@@ -268,7 +269,7 @@ fun PersonalInfoScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = GroceryGreen
                 )
             ) {
                 Text(
@@ -292,8 +293,8 @@ fun PersonalInfoTopBar(onBackClick: () -> Unit) {
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary
+                        GroceryGreen,
+                        GroceryGreenDark
                     )
                 )
             )
@@ -340,16 +341,27 @@ fun InfoField(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = GroceryGreen
             )
         },
         enabled = enabled,
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            cursorColor = MaterialTheme.colorScheme.primary
+            // Focused (editing) colors
+            focusedBorderColor = GroceryGreen,
+            focusedLabelColor = GroceryGreen,
+            focusedTextColor = Color(0xFF181725),
+            cursorColor = GroceryGreen,
+            // Unfocused colors
+            unfocusedBorderColor = Color(0xFFBDBDBD),
+            unfocusedLabelColor = Color(0xFF616161),
+            unfocusedTextColor = Color(0xFF181725),
+            // Disabled colors (make text clearly visible)
+            disabledTextColor = Color(0xFF181725),
+            disabledLabelColor = Color(0xFF757575),
+            disabledBorderColor = Color(0xFFBDBDBD),
+            disabledLeadingIconColor = GroceryGreen
         )
     )
 }

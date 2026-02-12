@@ -117,7 +117,14 @@ fun HomeScreen(
                     BottomNavItem("Favourite", Icons.Default.Favorite, false),
                     BottomNavItem("Account", Icons.Default.Person, false)
                 ),
-                onItemClick = onBottomNavClick
+                onItemClick = { label ->
+                    when (label) {
+                        "Explore" -> onSearchClick()
+                        "Cart" -> onCartClick()
+                        "Account" -> onProfileClick()
+                    }
+                    onBottomNavClick(label)
+                }
             )
         },
         containerColor = Color.White
