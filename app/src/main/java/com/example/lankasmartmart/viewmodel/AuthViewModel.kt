@@ -181,15 +181,7 @@ class AuthViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 println("🔐 Google Sign-In error: ${e.message}")
-                println("🔐 Falling back to mock authentication")
-                // Fallback to mock auth when Firebase is not configured properly
-                val mockUserData = UserData(
-                    uid = "mock_google_${System.currentTimeMillis()}",
-                    name = account.displayName ?: "Google User",
-                    email = account.email ?: "user@gmail.com",
-                    isMockUser = true
-                )
-                _authState.value = AuthState.Success(mockUserData)
+                _authState.value = AuthState.Error("Google Sign-In failed: ${e.message}")
             }
         }
     }
@@ -240,5 +232,8 @@ class AuthViewModel : ViewModel() {
     // Reset auth state
     fun resetAuthState() {
         _authState.value = AuthState.Idle
+    }
+    fun setErrorMessage(message: String) {
+        _authState.value = AuthState.Error(message)
     }
 }

@@ -501,7 +501,7 @@ fun EmptyCartView(
 }
 
 // Helper function for category icons
-private fun getCategoryEmoji(categoryId: String): String {
+internal fun getCategoryEmoji(categoryId: String): String {
     return when (categoryId) {
         "groceries" -> "🛒"
         "vegetables" -> "🥬"
@@ -513,5 +513,21 @@ private fun getCategoryEmoji(categoryId: String): String {
         "household" -> "🧹"
         "stationery" -> "✏️"
         else -> "📦"
+    }
+}
+
+// Helper function for category colors
+internal fun getCategoryColor(categoryId: String): Color {
+    return when (categoryId) {
+        "groceries" -> Color(0xFFE8F5E9)
+        "vegetables" -> Color(0xFFE8F5E9)
+        "fruits" -> Color(0xFFFFEBEE)
+        "dairy" -> Color(0xFFE3F2FD)
+        "beverages" -> Color(0xFFFFF3E0)
+        "snacks" -> Color(0xFFFFF9C4)
+        "personal_care" -> Color(0xFFF3E5F5)
+        "household" -> Color(0xFFE0F7FA)
+        "stationery" -> Color(0xFFFFF8E1)
+        else -> Color(0xFFECEFF1)
     }
 }

@@ -404,19 +404,3 @@ fun NoResultsFound(query: String) {
         }
     }
 }
-
-// Helper function
-private fun getCategoryEmoji(categoryId: String): String {
-    return when (categoryId) {
-        "groceries" -> "🛒"
-        "vegetables" -> "🥬"
-        "fruits" -> "🍎"
-        "dairy" -> "🥛"
-        "beverages" -> "☕"
-        "snacks" -> "🍿"
-        "personal_care" -> "🧴"
-        "household" -> "🧹"
-        "stationery" -> "✏️"
-        else -> "📦"
-    }
-}

@@ -21,9 +21,7 @@ apply(plugin = "com.google.gms.google-services")
 
 android {
     namespace = "com.example.lankasmartmart"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.lankasmartmart"
@@ -75,6 +73,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
     
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))

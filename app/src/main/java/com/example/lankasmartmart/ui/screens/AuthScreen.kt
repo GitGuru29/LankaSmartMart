@@ -40,6 +40,7 @@ fun AuthScreen(
 ) {
     val context = LocalContext.current
     val authState by authViewModel.authState.collectAsState()
+    var showToast by remember { mutableStateOf<String?>(null) }
     
     // Form state
     var email by remember { mutableStateOf("") }
@@ -59,21 +60,35 @@ fun AuthScreen(
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                authViewModel.signInWithGoogle(account)
-            } catch (e: ApiException) {
-                authViewModel.loginWithEmail("mock@example.com", "password")
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            authViewModel.signInWithGoogle(account)
+        } catch (e: ApiException) {
+            val errorMessage = when (e.statusCode) {
+                10 -> "Google Sign-In Developer Error (Code 10): SHA-1 fingerprint not configured in Firebase Console"
+                12500 -> "Google Sign-In Error (Code 12500): Google Play Services issue or app not registered"
+                12501 -> "User cancelled Google Sign-In"
+                else -> "Google Sign-In failed: Error code ${e.statusCode}"
             }
+            authViewModel.setErrorMessage(errorMessage)
         }
     }
     
-    // Handle auth success
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             onAuthSuccess()
+        } else if (authState is AuthState.Error) {
+             showToast = (authState as AuthState.Error).message
+        }
+    }
+    
+    // Show Toast
+    LaunchedEffect(showToast) {
+        showToast?.let {
+            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
+            showToast = null
+            authViewModel.resetAuthState() // Clear error after showing
         }
     }
     
