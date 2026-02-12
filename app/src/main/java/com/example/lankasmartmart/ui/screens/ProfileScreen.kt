@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lankasmartmart.R
+import com.example.lankasmartmart.ui.theme.*
 import com.example.lankasmartmart.utils.extractName
 import com.example.lankasmartmart.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -62,7 +63,7 @@ fun ProfileScreen(
     val userInitial = displayName.firstOrNull()?.uppercase() ?: "G"
     
     Scaffold(
-        containerColor = Color(0xFFF8FFFE),
+        containerColor = Color.White,
         contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             ProfileTopBar(onBackClick = onBackClick)
@@ -188,7 +189,7 @@ fun ProfileTopBar(onBackClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
+            .background(GroceryGreen)
             .padding(top = statusBarHeight)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -229,8 +230,8 @@ fun ProfileHeader(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary
+                        GroceryGreen,
+                        GroceryGreenDark
                     )
                 )
             )
@@ -266,8 +267,8 @@ fun ProfileHeader(
                             .background(
                                 brush = Brush.radialGradient(
                                     colors = listOf(
-                                        MaterialTheme.colorScheme.primary,
-                                        Color(0xFF004D40)
+                                        GroceryGreen,
+                                        GroceryGreenDark
                                     )
                                 )
                             )
@@ -394,7 +395,7 @@ fun MenuItemRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = GroceryGreen,
             modifier = Modifier.size(24.dp)
         )
         

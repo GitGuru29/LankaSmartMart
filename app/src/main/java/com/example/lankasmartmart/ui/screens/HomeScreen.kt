@@ -69,7 +69,14 @@ fun HomeScreen(
         bottomBar = {
             GroceryBottomNavBar(
                 selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
+                onTabSelected = { index ->
+                    selectedTab = index
+                    when (index) {
+                        1 -> onSearchClick()    // Explore tab
+                        2 -> onCartClick()      // Cart tab
+                        4 -> onProfileClick()   // Account tab
+                    }
+                }
             )
         }
     ) { paddingValues ->
