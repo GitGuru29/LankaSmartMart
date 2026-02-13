@@ -170,7 +170,7 @@ fun ProductCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Rs. ${String.format("%.2f", product.discountedPrice)}",
+                        text = "Rs. ${String.format(java.util.Locale.getDefault(), "%.2f", product.discountedPrice)}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -179,7 +179,7 @@ fun ProductCard(
                     if (product.isOnSale && product.originalPrice > product.price) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Rs. ${String.format("%.2f", product.originalPrice)}",
+                            text = "Rs. ${String.format(java.util.Locale.getDefault(), "%.2f", product.originalPrice)}",
                             fontSize = 14.sp,
                             color = Color.Gray,
                             textDecoration = TextDecoration.LineThrough

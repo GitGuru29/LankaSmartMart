@@ -34,7 +34,7 @@ fun ProductDetailsScreen(
     val products by shopViewModel.products.collectAsState()
     val product = products.find { it.id == productId }
     
-    var quantity by remember { mutableStateOf(1) }
+    var quantity by remember { mutableIntStateOf(1) }
     var showAddedToast by remember { mutableStateOf(false) }
     
     if (product == null) {
@@ -285,7 +285,7 @@ fun ProductInfoCard(product: Product) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = String.format("%.1f", product.rating),
+                        text = String.format(java.util.Locale.getDefault(), "%.1f", product.rating),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF212121)
@@ -310,7 +310,7 @@ fun ProductInfoCard(product: Product) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "LKR ${String.format("%.2f", product.price)}",
+                    text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", product.price)}",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -318,7 +318,7 @@ fun ProductInfoCard(product: Product) {
                 
                 if (product.isOnSale && product.originalPrice != null) {
                     Text(
-                        text = "LKR ${String.format("%.2f", product.originalPrice)}",
+                        text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", product.originalPrice)}",
                         fontSize = 16.sp,
                         color = Color(0xFF757575),
                         textDecoration = TextDecoration.LineThrough
@@ -538,7 +538,7 @@ fun RatingsReviewsCard(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = String.format("%.1f/5.0", rating),
+                    text = String.format(java.util.Locale.getDefault(), "%.1f/5.0", rating),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF212121)
@@ -659,7 +659,7 @@ fun AddToCartBottomBar(
                     }
                     
                     Text(
-                        text = "LKR ${String.format("%.2f", price * quantity)}",
+                        text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", price * quantity)}",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

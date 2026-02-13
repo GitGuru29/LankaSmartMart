@@ -1,6 +1,7 @@
 package com.example.lankasmartmart
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -8,6 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -25,7 +30,7 @@ import com.example.lankasmartmart.ui.screens.ProfileScreen
 import com.example.lankasmartmart.ui.screens.SearchScreen
 import com.example.lankasmartmart.ui.screens.SplashScreen
 import com.example.lankasmartmart.ui.screens.WelcomeScreen
-import com.example.lankasmartmart.ui.screens.OnboardingScreen
+import com.example.lankasmartmart.ui.screens.OnboardingScreen1
 import com.example.lankasmartmart.ui.screens.OnboardingScreen2
 import com.example.lankasmartmart.ui.screens.OnboardingScreen3
 import com.example.lankasmartmart.ui.screens.SignUpScreen
@@ -44,6 +49,7 @@ import com.example.lankasmartmart.ui.screens.NotificationsScreen
 import com.example.lankasmartmart.ui.screens.LanguageScreen
 import com.example.lankasmartmart.ui.theme.LankaSmartMartTheme
 import com.example.lankasmartmart.viewmodel.AuthViewModel
+import com.example.lankasmartmart.utils.ShakeDetector
 import com.example.lankasmartmart.viewmodel.ShopViewModel
 
 class MainActivity : ComponentActivity() {
@@ -69,7 +75,7 @@ class MainActivity : ComponentActivity() {
 
 sealed class Screen {
     object Welcome : Screen()
-    object Onboarding : Screen()
+    object Onboarding1 : Screen()
     object Onboarding2 : Screen()
     object Onboarding3 : Screen()
     object Splash : Screen()
@@ -104,17 +110,52 @@ fun LankaSmartMartApp() {
     var isAuthenticated by remember { mutableStateOf(false) }
     val shopViewModel: ShopViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
+    val context = LocalContext.current
+
+    // ── Shake-to-Cart Gesture ──────────────────────────────────────────────
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val shakeDetector = ShakeDetector(context) {
+            // Only navigate to cart if user is past auth screens
+            val isOnMainScreen = currentScreen is Screen.Home ||
+                    currentScreen is Screen.Profile ||
+                    currentScreen is Screen.Search ||
+                    currentScreen is Screen.Cart ||
+                    currentScreen is Screen.ProductList ||
+                    currentScreen is Screen.ProductDetails
+
+            if (isOnMainScreen && currentScreen !is Screen.Cart) {
+                currentScreen = Screen.Cart
+                Toast.makeText(context, "🛒 Shake detected! Opening Cart...", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> shakeDetector.start()
+                Lifecycle.Event.ON_PAUSE -> shakeDetector.stop()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            shakeDetector.stop()
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     when (val screen = currentScreen) {
         is Screen.Welcome -> {
             WelcomeScreen(
                 onNavigateToAuth = {
-                    currentScreen = Screen.Onboarding
+                    currentScreen = Screen.Onboarding1
                 }
             )
         }
-        is Screen.Onboarding -> {
-            OnboardingScreen(
+        is Screen.Onboarding1 -> {
+            OnboardingScreen1(
                 onGetStarted = {
                     currentScreen = Screen.Onboarding2
                 },
@@ -127,18 +168,12 @@ fun LankaSmartMartApp() {
             OnboardingScreen2(
                 onNext = {
                     currentScreen = Screen.Onboarding3
-                },
-                onSkip = {
-                    currentScreen = Screen.Auth
                 }
             )
         }
         is Screen.Onboarding3 -> {
             OnboardingScreen3(
                 onLetsGo = {
-                    currentScreen = Screen.Auth
-                },
-                onSkip = {
                     currentScreen = Screen.Auth
                 }
             )

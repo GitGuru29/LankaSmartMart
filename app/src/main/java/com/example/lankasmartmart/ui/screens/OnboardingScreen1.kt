@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,15 +21,16 @@ import androidx.compose.ui.unit.sp
 import com.example.lankasmartmart.R
 
 @Composable
-fun OnboardingScreen3(
-    onLetsGo: () -> Unit
+fun OnboardingScreen1(
+    onGetStarted: () -> Unit,
+    onSkip: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         // Background Image
         Image(
-            painter = painterResource(id = R.drawable.onboarding_3),
+            painter = painterResource(id = R.drawable.onboarding_1),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -38,8 +40,22 @@ fun OnboardingScreen3(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(Color.Black.copy(alpha = 0.4f))
         )
+
+        // Skip button at top right
+        TextButton(
+            onClick = onSkip,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 50.dp, end = 20.dp)
+        ) {
+            Text(
+                text = "Skip",
+                color = Color.White,
+                fontSize = 16.sp
+            )
+        }
 
         // Content at bottom
         Column(
@@ -52,7 +68,7 @@ fun OnboardingScreen3(
         ) {
             // Title
             Text(
-                text = "Your Daily\nGrocery Partner",
+                text = "Welcome\nto our store",
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -64,7 +80,7 @@ fun OnboardingScreen3(
 
             // Description
             Text(
-                text = "Save time, shop smart, and get everything you need in just a few taps.",
+                text = "Get your groceries in as fast as one hour",
                 fontSize = 16.sp,
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center
@@ -72,9 +88,9 @@ fun OnboardingScreen3(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Let's Go Button
+            // Get Started Button
             Button(
-                onClick = onLetsGo,
+                onClick = onGetStarted,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -84,7 +100,7 @@ fun OnboardingScreen3(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Let's go..",
+                    text = "Get Started..",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White

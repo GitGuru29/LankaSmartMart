@@ -15,6 +15,7 @@ class LocationHelper(private val context: Context) {
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
+    @android.annotation.SuppressLint("MissingPermission")
     suspend fun getCurrentCity(): String {
         return try {
             if (!hasLocationPermission()) {

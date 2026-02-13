@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
 import com.example.lankasmartmart.R
 import com.example.lankasmartmart.ui.theme.DesignSystem
 import kotlinx.coroutines.delay
@@ -79,10 +80,11 @@ fun SplashScreen(onNavigateToAuth: () -> Unit) {
             ),
         contentAlignment = Alignment.Center
     ) {
+        val density = LocalDensity.current
         Column(
             modifier = Modifier
                 .alpha(alpha)
-                .offset(y = offsetY.dp),
+                .offset { with(density) { androidx.compose.ui.unit.IntOffset(0, offsetY.dp.roundToPx()) } },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
