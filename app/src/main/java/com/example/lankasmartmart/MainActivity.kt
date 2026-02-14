@@ -21,15 +21,13 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lankasmartmart.ui.screens.WelcomeScreen
 import com.example.lankasmartmart.ui.screens.CartScreen
 import com.example.lankasmartmart.ui.screens.HomeScreen
 import com.example.lankasmartmart.ui.screens.ProductDetailsScreen
 import com.example.lankasmartmart.ui.screens.ProductListScreen
 import com.example.lankasmartmart.ui.screens.ProfileScreen
 import com.example.lankasmartmart.ui.screens.SearchScreen
-import com.example.lankasmartmart.ui.screens.SplashScreen
-import com.example.lankasmartmart.ui.screens.WelcomeScreen
+import com.example.lankasmartmart.ui.screens.LoadingScreen
 import com.example.lankasmartmart.ui.screens.OnboardingScreen1
 import com.example.lankasmartmart.ui.screens.OnboardingScreen2
 import com.example.lankasmartmart.ui.screens.OnboardingScreen3
@@ -76,14 +74,13 @@ class MainActivity : ComponentActivity() {
 }
 
 sealed class Screen {
-    object Welcome : Screen()
+    object Loading : Screen()
     object Onboarding1 : Screen()
     object Onboarding2 : Screen()
     object Onboarding3 : Screen()
     object LoginSelection : Screen()
     object Login : Screen()
     object SignUp : Screen()
-    object Splash : Screen()
     object Home : Screen()
     object Cart : Screen()
     object Search : Screen()
@@ -109,7 +106,7 @@ sealed class Screen {
 
 @Composable
 fun LankaSmartMartApp() {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Welcome) }
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Loading) }
     var isAuthenticated by remember { mutableStateOf(true) }
     val shopViewModel: ShopViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
@@ -150,9 +147,9 @@ fun LankaSmartMartApp() {
     // ────────────────────────────────────────────────────────────────────────
 
     when (val screen = currentScreen) {
-        is Screen.Welcome -> {
-            WelcomeScreen(
-                onNavigateToAuth = {
+        is Screen.Loading -> {
+            LoadingScreen(
+                onNavigateToOnboarding = {
                     currentScreen = Screen.Onboarding1
                 }
             )
@@ -216,13 +213,6 @@ fun LankaSmartMartApp() {
                 },
                 onSignInClick = {
                     currentScreen = Screen.Login
-                }
-            )
-        }
-        is Screen.Splash -> {
-            SplashScreen(
-                onNavigateToAuth = {
-                    currentScreen = Screen.Home
                 }
             )
         }
