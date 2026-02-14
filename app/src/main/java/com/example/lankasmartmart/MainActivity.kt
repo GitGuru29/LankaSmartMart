@@ -27,6 +27,8 @@ import com.example.lankasmartmart.ui.screens.ProductDetailsScreen
 import com.example.lankasmartmart.ui.screens.ProductListScreen
 import com.example.lankasmartmart.ui.screens.ProfileScreen
 import com.example.lankasmartmart.ui.screens.SearchScreen
+import com.example.lankasmartmart.ui.screens.FindProductsScreen
+import com.example.lankasmartmart.ui.screens.FavouriteScreen
 import com.example.lankasmartmart.ui.screens.LoadingScreen
 import com.example.lankasmartmart.ui.screens.OnboardingScreen1
 import com.example.lankasmartmart.ui.screens.OnboardingScreen2
@@ -84,6 +86,7 @@ sealed class Screen {
     object Home : Screen()
     object Cart : Screen()
     object Search : Screen()
+    object FindProducts : Screen()
     object Profile : Screen()
     object PersonalInfo : Screen()
     object Addresses : Screen()
@@ -100,6 +103,7 @@ sealed class Screen {
     object Notifications : Screen()
     object Language : Screen()
     object HelpSupport : Screen()
+    object Favourite : Screen()
     data class ProductList(val categoryId: String, val categoryName: String) : Screen()
     data class ProductDetails(val productId: String) : Screen()
 }
@@ -107,7 +111,6 @@ sealed class Screen {
 @Composable
 fun LankaSmartMartApp() {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Loading) }
-    var isAuthenticated by remember { mutableStateOf(true) }
     val shopViewModel: ShopViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
@@ -119,9 +122,11 @@ fun LankaSmartMartApp() {
             // Only navigate to cart if user is past auth screens
             val isOnMainScreen = currentScreen is Screen.Home ||
                     currentScreen is Screen.Profile ||
+                    currentScreen is Screen.FindProducts ||
                     currentScreen is Screen.Search ||
                     currentScreen is Screen.Cart ||
                     currentScreen is Screen.ProductList ||
+                    currentScreen is Screen.Favourite ||
                     currentScreen is Screen.ProductDetails
 
             if (isOnMainScreen && currentScreen !is Screen.Cart) {
@@ -144,7 +149,16 @@ fun LankaSmartMartApp() {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    // ────────────────────────────────────────────────────────────────────────
+    // ── Bottom Navigation Click Handler ──────────────────────────────────────
+    val handleBottomNavClick: (String) -> Unit = { label ->
+        when (label) {
+            "Shop" -> currentScreen = Screen.Home
+            "Explore" -> currentScreen = Screen.FindProducts
+            "Cart" -> currentScreen = Screen.Cart
+            "Favourite" -> currentScreen = Screen.Favourite
+            "Account" -> currentScreen = Screen.Profile
+        }
+    }
 
     when (val screen = currentScreen) {
         is Screen.Loading -> {
@@ -227,14 +241,15 @@ fun LankaSmartMartApp() {
                     )
                 },
                 onSearchClick = {
-                    currentScreen = Screen.Search
+                    currentScreen = Screen.FindProducts
                 },
                 onCartClick = {
                     currentScreen = Screen.Cart
                 },
                 onProfileClick = {
                     currentScreen = Screen.Profile
-                }
+                },
+                onBottomNavClick = handleBottomNavClick
             )
         }
         is Screen.Cart -> {
@@ -257,6 +272,32 @@ fun LankaSmartMartApp() {
                 onProductClick = { product ->
                     currentScreen = Screen.ProductDetails(product.id)
                 }
+            )
+        }
+        is Screen.FindProducts -> {
+            FindProductsScreen(
+                onCategoryClick = { categoryId ->
+                    currentScreen = Screen.ProductList(
+                        categoryId = categoryId,
+                        categoryName = categoryId
+                    )
+                },
+                onSearchClick = {
+                    currentScreen = Screen.Search
+                },
+                onCartClick = {
+                    currentScreen = Screen.Cart
+                },
+                onProfileClick = {
+                    currentScreen = Screen.Profile
+                },
+                onBottomNavClick = handleBottomNavClick
+            )
+        }
+        is Screen.Favourite -> {
+            FavouriteScreen(
+                shopViewModel = shopViewModel,
+                onBottomNavClick = handleBottomNavClick
             )
         }
         is Screen.ProductList -> {

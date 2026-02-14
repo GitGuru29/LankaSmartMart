@@ -65,7 +65,7 @@ fun LoginScreen(
 
             // Title
             Text(
-                text = "Loging",
+                text = "Login",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -75,7 +75,7 @@ fun LoginScreen(
 
             // Subtitle
             Text(
-                text = "Enter your emails and password",
+                text = "Enter your email and password",
                 fontSize = 14.sp,
                 color = Color(0xFF9E9E9E)
             )

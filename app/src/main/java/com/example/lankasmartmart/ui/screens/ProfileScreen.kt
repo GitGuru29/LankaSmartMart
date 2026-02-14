@@ -367,7 +367,7 @@ fun MenuSection(
                     )
                     
                     if (index < items.size - 1) {
-                        Divider(
+                        HorizontalDivider(
                             color = Color(0xFFE0E0E0),
                             thickness = 1.dp,
                             modifier = Modifier.padding(horizontal = 16.dp)
