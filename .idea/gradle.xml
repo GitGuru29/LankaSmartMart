@@ -9,8 +9,8 @@
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="/run/media/msfvenom/28aa095f-4b10-4a14-8ba9-4f2570fb6ce2/Projects/LankaSmartMart" />
+            <option value="/run/media/msfvenom/28aa095f-4b10-4a14-8ba9-4f2570fb6ce2/Projects/LankaSmartMart/app" />
           </set>
         </option>
       </GradleProjectSettings>
