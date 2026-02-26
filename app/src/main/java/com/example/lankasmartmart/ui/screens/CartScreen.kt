@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lankasmartmart.model.CartItem
 import com.example.lankasmartmart.ui.theme.GroceryGreen
+import com.example.lankasmartmart.utils.*
 import com.example.lankasmartmart.ui.theme.GroceryGreenDark
 import com.example.lankasmartmart.ui.theme.GroceryTextDark
 import com.example.lankasmartmart.ui.theme.GroceryTextGrey
@@ -40,6 +42,9 @@ fun CartScreen(
 ) {
     val cartItems by shopViewModel.cartItems.collectAsState()
     val cartTotal by shopViewModel.cartTotal.collectAsState()
+    
+    var showCheckout by remember { mutableStateOf(false) }
+    var showOrderFailed by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.White,
@@ -50,7 +55,7 @@ fun CartScreen(
         bottomBar = {
             CartBottomBar(
                 total = cartTotal,
-                onCheckoutClick = onCheckoutClick,
+                onCheckoutClick = { showCheckout = true },
                 showCheckout = cartItems.isNotEmpty()
             )
         }
@@ -86,6 +91,32 @@ fun CartScreen(
                     )
                 }
             }
+        }
+
+        if (showCheckout) {
+            CheckoutBottomSheet(
+                totalCost = cartTotal,
+                onClose = { showCheckout = false },
+                onPlaceOrder = {
+                    showCheckout = false
+                    // Simulate order process
+                    onCheckoutClick() // Navigate to success screen
+                }
+            )
+        }
+
+        if (showOrderFailed) {
+            OrderFailedDialog(
+                onDismiss = { showOrderFailed = false },
+                onTryAgain = {
+                    showOrderFailed = false
+                    showCheckout = true
+                },
+                onBackToHome = {
+                    showOrderFailed = false
+                    onBackClick()
+                }
+            )
         }
     }
 }
@@ -285,7 +316,7 @@ private fun CartItemRow(
 
                 // Price
                 Text(
-                    text = "LKR ${String.format(java.util.Locale.getDefault(), "%.0f", cartItem.product.price * cartItem.quantity)}",
+                    text = "LKR ${String.format(java.util.Locale.getDefault(), "%.0f", cartItem.product.discountedPrice * cartItem.quantity)}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = GroceryTextDark
@@ -416,64 +447,4 @@ fun EmptyCartView(
     }
 }
 
-// ─── Helper: Resolve product image drawable ─────────────────────────────────────
 
-private fun getProductImageRes(context: android.content.Context, productName: String): Int? {
-    // Convert product name to drawable resource name: "Organic Bananas" -> "img_bananas"
-    val simpleName = productName
-        .lowercase()
-        .replace("organic ", "")
-        .replace("fresh ", "")
-        .replace("ceylon ", "ceylon_")
-        .replace("basmati ", "basmati_")
-        .replace("wheat ", "wheat_")
-        .replace("anchor ", "anchor_")
-        .replace("mango ", "mango_")
-        .replace("red ", "red_")
-        .replace("rin ", "rin_")
-        .replace("rani ", "rani_")
-        .replace("misumi ", "misumi_")
-        .replace("cream ", "cream_")
-        .replace("coconut ", "coconut_")
-        .replace("sunlight ", "sunlight_")
-        .replace("blue ", "blue_")
-        .replace("atlas ", "atlas_")
-        .trim()
-        .replace(" ", "_")
-
-    val resName = "img_$simpleName"
-    val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
-    return if (resId != 0) resId else null
-}
-
-// Helper function for category icons (kept for fallback)
-internal fun getCategoryEmoji(categoryId: String): String {
-    return when (categoryId) {
-        "groceries" -> "🛒"
-        "vegetables" -> "🥬"
-        "fruits" -> "🍎"
-        "dairy" -> "🥛"
-        "beverages" -> "☕"
-        "snacks" -> "🍿"
-        "personal_care" -> "🧴"
-        "household" -> "🧹"
-        "stationery" -> "✏️"
-        else -> "📦"
-    }
-}
-
-// Helper function for category colors (kept for other usage)
-internal fun getCategoryColor(categoryId: String): Color {
-    return when (categoryId) {
-        "groceries" -> Color(0xFFE8F5E9)
-        "vegetables" -> Color(0xFFE8F5E9)
-        "fruits" -> Color(0xFFFFEBEE)
-        "dairy" -> Color(0xFFE3F2FD)
-        "beverages" -> Color(0xFFFFF3E0)
-        "snacks" -> Color(0xFFFFF9C4)
-        "personal_care" -> Color(0xFFF3E5F5)
-        "household" -> Color(0xFFE0F7FA)
-        "stationery" -> Color(0xFFFFF8E1)
-        else -> Color(0xFFECEFF1)
-    }
-}

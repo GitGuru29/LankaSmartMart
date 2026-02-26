@@ -22,7 +22,8 @@ data class Product(
     val isOnSale: Boolean = false,
     val discount: Int = 0, // Percentage
     val rating: Float = 0.0f,
-    val reviewCount: Int = 0
+    val reviewCount: Int = 0,
+    val reviews: List<Review> = emptyList()
 ) {
     val discountedPrice: Double
         get() = if (isOnSale && discount > 0) {
@@ -31,6 +32,25 @@ data class Product(
             price
         }
 }
+
+data class Review(
+    val id: String = "",
+    val userId: String = "",
+    val userName: String = "",
+    val rating: Int = 5,
+    val comment: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+data class Promotion(
+    val id: String = "",
+    val title: String = "",
+    val subtitle: String = "",
+    val imageUrl: String = "",
+    val backgroundColor: String = "#53B175", // Hex color
+    val actionType: String = "product", // product, category, search
+    val actionId: String = "" // productId or categoryId
+)
 
 data class CartItem(
     val productId: String = "",

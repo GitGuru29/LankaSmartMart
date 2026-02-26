@@ -88,35 +88,8 @@ fun HomeScreen(
     onShopNowClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {}
 ) {
-    // Promotional banners data
-    val promoBanners = remember {
-        listOf(
-            PromoBannerItem(
-                title = "Up to 30% offer",
-                subtitle = "Enjoy our big offer",
-                buttonText = "Shop Now",
-                backgroundColor = BannerBlue,
-                buttonColor = PrimaryBlue,
-                icon = Icons.Default.ShoppingBasket
-            ),
-            PromoBannerItem(
-                title = "Up to 25% off",
-                subtitle = "On first buyers",
-                buttonText = "Buy Now",
-                backgroundColor = Color(0xFFE8F5E9),
-                buttonColor = PrimaryGreen,
-                icon = Icons.Default.ShoppingBag
-            ),
-            PromoBannerItem(
-                title = "Get Same day Deliver",
-                subtitle = "On orders above \$20",
-                buttonText = "Shop Now",
-                backgroundColor = Color(0xFFFFF9C4),
-                buttonColor = OrangeAccent,
-                icon = Icons.Default.LocalShipping
-            )
-        )
-    }
+    // Promotional banners state from ViewModel
+    val promotions by shopViewModel?.promotions?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
 
     // Product categories data
     val categories = remember {
@@ -196,12 +169,22 @@ fun HomeScreen(
             }
 
             // Auto-changing Promotional Banner
-            item {
-                AutoChangingPromoBanner(
-                    banners = promoBanners,
-                    onShopNowClick = onShopNowClick,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+            if (promotions.isNotEmpty()) {
+                item {
+                    AutoChangingPromoBanner(
+                        banners = promotions,
+                        onPromoClick = { promo ->
+                            when (promo.actionType) {
+                                "category" -> onCategoryClick(promo.actionId)
+                                "product" -> {
+                                    // Handle product click if needed
+                                }
+                                else -> onShopNowClick()
+                            }
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
             }
 
             // Category Sections
@@ -293,18 +276,20 @@ fun CenteredLogoHeader(
 
 @Composable
 fun AutoChangingPromoBanner(
-    banners: List<PromoBannerItem>,
+    banners: List<com.example.lankasmartmart.model.Promotion>,
     modifier: Modifier = Modifier,
-    onShopNowClick: () -> Unit = {}
+    onPromoClick: (com.example.lankasmartmart.model.Promotion) -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = { banners.size })
 
     // Auto-scroll effect
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000) // Change banner every 3 seconds
-            val nextPage = (pagerState.currentPage + 1) % banners.size
-            pagerState.animateScrollToPage(nextPage)
+    LaunchedEffect(banners) {
+        if (banners.isNotEmpty()) {
+            while (true) {
+                delay(4000) // Change banner every 4 seconds
+                val nextPage = (pagerState.currentPage + 1) % banners.size
+                pagerState.animateScrollToPage(nextPage)
+            }
         }
     }
 
@@ -315,9 +300,9 @@ fun AutoChangingPromoBanner(
             state = pagerState,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
-            PromoBannerCard(
-                banner = banners[page],
-                onShopNowClick = onShopNowClick
+            PromotionBannerCard(
+                promotion = banners[page],
+                onPromoClick = { onPromoClick(banners[page]) }
             )
         }
 
@@ -348,18 +333,27 @@ fun AutoChangingPromoBanner(
 }
 
 @Composable
-fun PromoBannerCard(
-    banner: PromoBannerItem,
+fun PromotionBannerCard(
+    promotion: com.example.lankasmartmart.model.Promotion,
     modifier: Modifier = Modifier,
-    onShopNowClick: () -> Unit = {}
+    onPromoClick: () -> Unit = {}
 ) {
+    val backgroundColor = remember(promotion.backgroundColor) {
+        try {
+            Color(android.graphics.Color.parseColor(promotion.backgroundColor))
+        } catch (e: Exception) {
+            PrimaryGreen
+        }
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp),
+            .height(160.dp)
+            .clickable { onPromoClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = banner.backgroundColor
+            containerColor = backgroundColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -376,48 +370,45 @@ fun PromoBannerCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = banner.title,
+                    text = promotion.title,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = Color.White,
                     lineHeight = 28.sp
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = banner.subtitle,
+                    text = promotion.subtitle,
                     fontSize = 14.sp,
-                    color = TextGray,
+                    color = Color.White.copy(alpha = 0.9f),
                     fontWeight = FontWeight.Normal
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = onShopNowClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = banner.buttonColor
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                Surface(
+                    onClick = onPromoClick,
+                    color = Color.White,
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = banner.buttonText,
+                        text = "Shop Now",
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        color = backgroundColor
                     )
                 }
             }
 
-            // Right icon/image
+            // Right icon/image decoration
             Icon(
-                imageVector = banner.icon,
+                imageVector = Icons.Default.LocalOffer,
                 contentDescription = null,
-                modifier = Modifier.size(100.dp),
-                tint = Color.Black.copy(alpha = 0.08f)
+                modifier = Modifier.size(80.dp),
+                tint = Color.White.copy(alpha = 0.15f)
             )
         }
     }
