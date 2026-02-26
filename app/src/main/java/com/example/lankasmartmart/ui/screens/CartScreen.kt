@@ -285,7 +285,7 @@ private fun CartItemRow(
 
                 // Price
                 Text(
-                    text = "LKR ${String.format("%.0f", cartItem.product.price * cartItem.quantity)}",
+                    text = "LKR ${String.format(java.util.Locale.getDefault(), "%.0f", cartItem.product.price * cartItem.quantity)}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = GroceryTextDark

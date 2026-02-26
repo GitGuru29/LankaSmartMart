@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.sp
 import com.example.lankasmartmart.R
 
 @Composable
-fun SignUpScreen(
-    onSignUpClick: (String, String, String) -> Unit,
-    onSignInClick: () -> Unit
+fun LoginScreen(
+    onLoginClick: (String, String) -> Unit,
+    onSignUpClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit = {}
 ) {
-    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -65,7 +65,7 @@ fun SignUpScreen(
 
             // Title
             Text(
-                text = "Sign Up",
+                text = "Loging",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -75,39 +75,12 @@ fun SignUpScreen(
 
             // Subtitle
             Text(
-                text = "Enter your credentials to continue",
+                text = "Enter your emails and password",
                 fontSize = 14.sp,
                 color = Color(0xFF9E9E9E)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
-
-            // Name Field
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Username",
-                    fontSize = 14.sp,
-                    color = Color(0xFF757575),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter your name") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Email Field
             Column(
@@ -123,7 +96,7 @@ fun SignUpScreen(
                     value = email,
                     onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter your email") },
+                    placeholder = { Text("kaveesha7@gmail.com") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = Color.Transparent,
@@ -172,11 +145,27 @@ fun SignUpScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Sign Up Button
+            // Forgot Password
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onForgotPasswordClick) {
+                    Text(
+                        text = "Forgot Password?",
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Log In Button
             Button(
-                onClick = { onSignUpClick(name, email, password) },
+                onClick = { onLoginClick(email, password) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -186,7 +175,7 @@ fun SignUpScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Sign Up",
+                    text = "Log In",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -195,22 +184,22 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sign In Link
+            // Sign Up Link
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Already have an account? ",
+                    text = "Don't have an account? ",
                     fontSize = 14.sp,
                     color = Color(0xFF757575)
                 )
                 TextButton(
-                    onClick = onSignInClick,
+                    onClick = onSignUpClick,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
-                        text = "Sign In",
+                        text = "Sign Up",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF5B7FFF)

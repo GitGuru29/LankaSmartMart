@@ -1,6 +1,7 @@
 package com.example.lankasmartmart.ui.screens
 
 import android.net.Uri
+import androidx.core.net.toUri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -102,7 +103,7 @@ fun PersonalInfoScreen(
                                 try {
                                     val user = FirebaseAuth.getInstance().currentUser
                                     val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
-                                        .setPhotoUri(android.net.Uri.parse(url))
+                                        .setPhotoUri(url.toUri())
                                         .build()
                                     
                                     user?.updateProfile(profileUpdates)?.await()

@@ -21,7 +21,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lankasmartmart.ui.screens.AuthScreen
+import com.example.lankasmartmart.ui.screens.WelcomeScreen
 import com.example.lankasmartmart.ui.screens.CartScreen
 import com.example.lankasmartmart.ui.screens.HomeScreen
 import com.example.lankasmartmart.ui.screens.ProductDetailsScreen
@@ -30,9 +30,11 @@ import com.example.lankasmartmart.ui.screens.ProfileScreen
 import com.example.lankasmartmart.ui.screens.SearchScreen
 import com.example.lankasmartmart.ui.screens.SplashScreen
 import com.example.lankasmartmart.ui.screens.WelcomeScreen
-import com.example.lankasmartmart.ui.screens.OnboardingScreen
+import com.example.lankasmartmart.ui.screens.OnboardingScreen1
 import com.example.lankasmartmart.ui.screens.OnboardingScreen2
 import com.example.lankasmartmart.ui.screens.OnboardingScreen3
+import com.example.lankasmartmart.ui.screens.LoginSelectionScreen
+import com.example.lankasmartmart.ui.screens.LoginScreen
 import com.example.lankasmartmart.ui.screens.SignUpScreen
 import com.example.lankasmartmart.ui.screens.PersonalInfoScreen
 import com.example.lankasmartmart.ui.screens.AddressesScreen
@@ -75,12 +77,13 @@ class MainActivity : ComponentActivity() {
 
 sealed class Screen {
     object Welcome : Screen()
-    object Onboarding : Screen()
+    object Onboarding1 : Screen()
     object Onboarding2 : Screen()
     object Onboarding3 : Screen()
-    object Splash : Screen()
-    object Auth : Screen()
+    object LoginSelection : Screen()
+    object Login : Screen()
     object SignUp : Screen()
+    object Splash : Screen()
     object Home : Screen()
     object Cart : Screen()
     object Search : Screen()
@@ -107,7 +110,7 @@ sealed class Screen {
 @Composable
 fun LankaSmartMartApp() {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Welcome) }
-    var isAuthenticated by remember { mutableStateOf(false) }
+    var isAuthenticated by remember { mutableStateOf(true) }
     val shopViewModel: ShopViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
@@ -150,17 +153,17 @@ fun LankaSmartMartApp() {
         is Screen.Welcome -> {
             WelcomeScreen(
                 onNavigateToAuth = {
-                    currentScreen = Screen.Onboarding
+                    currentScreen = Screen.Onboarding1
                 }
             )
         }
-        is Screen.Onboarding -> {
-            OnboardingScreen(
+        is Screen.Onboarding1 -> {
+            OnboardingScreen1(
                 onGetStarted = {
                     currentScreen = Screen.Onboarding2
                 },
                 onSkip = {
-                    currentScreen = Screen.Auth
+                    currentScreen = Screen.Home
                 }
             )
         }
@@ -168,51 +171,57 @@ fun LankaSmartMartApp() {
             OnboardingScreen2(
                 onNext = {
                     currentScreen = Screen.Onboarding3
-                },
-                onSkip = {
-                    currentScreen = Screen.Auth
                 }
             )
         }
         is Screen.Onboarding3 -> {
             OnboardingScreen3(
                 onLetsGo = {
-                    currentScreen = Screen.Auth
+                    currentScreen = Screen.LoginSelection
+                }
+            )
+        }
+        is Screen.LoginSelection -> {
+            LoginSelectionScreen(
+                onLoginClick = {
+                    currentScreen = Screen.Login
                 },
-                onSkip = {
-                    currentScreen = Screen.Auth
+                onGoogleSignInClick = {
+                    currentScreen = Screen.Home
+                },
+                onSignUpClick = {
+                    currentScreen = Screen.SignUp
+                }
+            )
+        }
+        is Screen.Login -> {
+            LoginScreen(
+                onLoginClick = { email, password ->
+                    // Handle login logic here
+                    currentScreen = Screen.Home
+                },
+                onSignUpClick = {
+                    currentScreen = Screen.SignUp
+                },
+                onForgotPasswordClick = {
+                    // Handle forgot password
+                }
+            )
+        }
+        is Screen.SignUp -> {
+            SignUpScreen(
+                onSignUpClick = { name, email, password ->
+                    // Handle sign up logic here
+                    currentScreen = Screen.Home
+                },
+                onSignInClick = {
+                    currentScreen = Screen.Login
                 }
             )
         }
         is Screen.Splash -> {
             SplashScreen(
                 onNavigateToAuth = {
-                    currentScreen = if (isAuthenticated) Screen.Home else Screen.Auth
-                }
-            )
-        }
-        is Screen.Auth -> {
-            AuthScreen(
-                onAuthSuccess = {
-                    isAuthenticated = true
-                    currentScreen = Screen.Home
-                },
-                onNavigateToSignUp = {
-                    currentScreen = Screen.SignUp
-                }
-            )
-        }
-        is Screen.SignUp -> {
-            SignUpScreen(
-                authViewModel = authViewModel,
-                onNavigateBack = {
-                    currentScreen = Screen.Auth
-                },
-                onNavigateToLogin = {
-                    currentScreen = Screen.Auth
-                },
-                onSignUpSuccess = {
-                    isAuthenticated = true
                     currentScreen = Screen.Home
                 }
             )
@@ -291,8 +300,9 @@ fun LankaSmartMartApp() {
                 authViewModel = authViewModel,
                 onBackClick = { currentScreen = Screen.Home },
                 onLogout = {
-                    isAuthenticated = false
-                    currentScreen = Screen.Auth
+                    // Stay on home/profile or go back to welcome?
+                    // Setting to Home for now as Auth is removed.
+                    currentScreen = Screen.Home
                 },
                 onNavigateToPersonalInfo = { currentScreen = Screen.PersonalInfo },
                 onNavigateToAddresses = { currentScreen = Screen.Addresses },

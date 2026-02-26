@@ -292,7 +292,7 @@ fun SearchProductCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "LKR ${String.format("%.2f", product.price)}",
+                        text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", product.price)}",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
