@@ -1,11 +1,14 @@
 package com.example.lankasmartmart.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,27 +21,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lankasmartmart.R
 import com.example.lankasmartmart.viewmodel.ShopViewModel
+import kotlinx.coroutines.delay
 
 // Data Models
 data class ProductItem(
     val id: Int,
     val name: String,
-    val imageRes: Int?,
+    val imageRes: Int,
     val rating: Float,
     val reviewCount: Int,
-    val price: Int,
-    val fallbackColor: Color = Color(0xFFF5F5F5)
+    val price: Int
+)
+
+data class PromoBannerItem(
+    val title: String,
+    val subtitle: String,
+    val buttonText: String,
+    val backgroundColor: Color,
+    val buttonColor: Color,
+    val icon: ImageVector
 )
 
 data class CategorySection(
@@ -53,13 +65,14 @@ data class BottomNavItem(
 )
 
 // Colors
-private val PrimaryBlue = Color(0xFF3F7BFA)
-private val LightBannerBlue = Color(0xFFE6EEFF)
-private val BannerBlueBackground = Color(0xFFD6E4FF)
-private val TextGray = Color(0xFF6B7280)
-private val GreenPrimary = Color(0xFF4CAF50)
+private val BackgroundWhite = Color(0xFFFFFFFF)
+private val PrimaryBlue = Color(0xFF5B7FFA)
+private val PrimaryGreen = Color(0xFF4CAF50)
 private val OrangeAccent = Color(0xFFFF9800)
 private val StarYellow = Color(0xFFFFC107)
+private val TextGray = Color(0xFF6B7280)
+private val CardGrey = Color(0xFFF5F5F5)
+private val BannerBlue = Color(0xFFD6E4FF)
 
 @Composable
 fun HomeScreen(
@@ -75,34 +88,48 @@ fun HomeScreen(
     onShopNowClick: () -> Unit = {},
     onBottomNavClick: (String) -> Unit = {}
 ) {
+    // Promotional banners state from ViewModel
+    val promotions by shopViewModel?.promotions?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
+
+    // Product categories data
     val categories = remember {
         listOf(
             CategorySection(
                 title = "Fruits",
                 products = listOf(
-                    ProductItem(
-                        id = 1,
-                        name = "Banana",
-                        imageRes = null,
-                        rating = 4.8f,
-                        reviewCount = 287,
-                        price = 250,
-                        fallbackColor = Color(0xFFFFF9E6)
-                    ),
-                    ProductItem(
-                        id = 2,
-                        name = "Pepper",
-                        imageRes = null,
-                        rating = 4.8f,
-                        reviewCount = 287,
-                        price = 420,
-                        fallbackColor = Color(0xFFFFE6E6)
-                    )
+                    ProductItem(1, "Banana", R.drawable.img_bananas, 4.8f, 287, 250),
+                    ProductItem(2, "Pepper", R.drawable.img_carrots, 4.8f, 287, 420),
+                    ProductItem(3, "Orange", R.drawable.img_papaya, 4.8f, 287, 200),
+                    ProductItem(4, "Strawberry", R.drawable.img_tomatoes, 4.8f, 287, 500),
+                    ProductItem(5, "Lemon", R.drawable.img_bananas, 4.8f, 287, 330),
+                    ProductItem(6, "Water lemon", R.drawable.img_papaya, 4.8f, 287, 160),
+                    ProductItem(7, "Apple", R.drawable.img_tomatoes, 4.8f, 287, 230),
+                    ProductItem(8, "Mango", R.drawable.img_papaya, 4.8f, 287, 140),
+                    ProductItem(9, "Grapes", R.drawable.img_bananas, 4.9f, 287, 290),
+                    ProductItem(10, "Paw Paw", R.drawable.img_papaya, 4.9f, 287, 280)
                 )
             ),
             CategorySection(
                 title = "Detergent",
-                products = listOf()
+                products = listOf(
+                    ProductItem(11, "Purex", R.drawable.img_rin_powder, 4.8f, 287, 390),
+                    ProductItem(12, "Varnish", R.drawable.img_sunlight_dishwash, 4.8f, 287, 430),
+                    ProductItem(13, "Harpic", R.drawable.img_rin_powder, 4.8f, 287, 350),
+                    ProductItem(14, "Harpic", R.drawable.img_sunlight_dishwash, 4.8f, 287, 420),
+                    ProductItem(15, "Purex", R.drawable.img_rin_powder, 4.8f, 287, 620),
+                    ProductItem(16, "Dettol", R.drawable.img_sunlight_dishwash, 4.8f, 287, 530)
+                )
+            ),
+            CategorySection(
+                title = "Biscuit",
+                products = listOf(
+                    ProductItem(17, "Chocolate", R.drawable.img_cream_cracker, 4.8f, 287, 130),
+                    ProductItem(18, "Milk Cream", R.drawable.img_coconut_chips, 4.8f, 287, 280),
+                    ProductItem(19, "Kalo", R.drawable.img_cream_cracker, 4.8f, 287, 280),
+                    ProductItem(20, "ChoShock", R.drawable.img_coconut_chips, 4.8f, 287, 290),
+                    ProductItem(21, "Tiffin", R.drawable.img_cream_cracker, 4.8f, 287, 230),
+                    ProductItem(22, "Chocolate Puff", R.drawable.img_coconut_chips, 4.8f, 287, 130)
+                )
             )
         )
     }
@@ -111,45 +138,56 @@ fun HomeScreen(
         bottomBar = {
             BottomNavBar(
                 items = listOf(
-                    BottomNavItem("Shop", Icons.Default.Store, true),
-                    BottomNavItem("Explore", Icons.Default.Search, false),
-                    BottomNavItem("Cart", Icons.Default.ShoppingCart, false),
-                    BottomNavItem("Favourite", Icons.Default.Favorite, false),
-                    BottomNavItem("Account", Icons.Default.Person, false)
+                    BottomNavItem("Shop", Icons.Outlined.Store, true),
+                    BottomNavItem("Explore", Icons.Outlined.Search, false),
+                    BottomNavItem("Cart", Icons.Outlined.ShoppingCart, false),
+                    BottomNavItem("Favourite", Icons.Outlined.FavoriteBorder, false),
+                    BottomNavItem("Account", Icons.Outlined.Person, false)
                 ),
                 onItemClick = { label ->
                     when (label) {
                         "Explore" -> onSearchClick()
                         "Cart" -> onCartClick()
                         "Account" -> onProfileClick()
+                        "Favourite" -> {}
                     }
                     onBottomNavClick(label)
                 }
             )
         },
-        containerColor = Color.White
+        containerColor = BackgroundWhite
     ) { paddingValues ->
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Centered Logo Header
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                CenteredLogoHeader()
             }
 
-            item {
-                TopLogoHeader()
+            // Auto-changing Promotional Banner
+            if (promotions.isNotEmpty()) {
+                item {
+                    AutoChangingPromoBanner(
+                        banners = promotions,
+                        onPromoClick = { promo ->
+                            when (promo.actionType) {
+                                "category" -> onCategoryClick(promo.actionId)
+                                "product" -> {
+                                    // Handle product click if needed
+                                }
+                                else -> onShopNowClick()
+                            }
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
             }
 
-            item {
-                PromoBanner(
-                    onShopNowClick = onShopNowClick,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-
+            // Category Sections
             items(categories) { category ->
                 Column {
                     SectionHeader(
@@ -158,19 +196,18 @@ fun HomeScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
 
-                    if (category.products.isNotEmpty()) {
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
-                        ) {
-                            items(category.products) { product ->
-                                ProductCard(
-                                    product = product,
-                                    onClick = { onProductClick(product) },
-                                    onAddClick = { onAddToCart(product) }
-                                )
-                            }
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) {
+                        items(category.products) { product ->
+                            ProductCard(
+                                product = product,
+                                onClick = { onProductClick(product) },
+                                onAddClick = { onAddToCart(product) }
+                            )
                         }
                     }
                 }
@@ -184,135 +221,195 @@ fun HomeScreen(
 }
 
 @Composable
-fun TopLogoHeader(
+fun CenteredLogoHeader(
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Logo placeholder - can be replaced with painterResource(R.drawable.logo)
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFE8F5E9)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.ShoppingCart,
-                contentDescription = "Logo",
-                modifier = Modifier.size(40.dp),
-                tint = GreenPrimary
-            )
-        }
+        // Logo
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "Lanka SmartMart Logo",
+            modifier = Modifier.size(80.dp)
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Brand Name
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = PrimaryGreen,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Lanka ")
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = OrangeAccent,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Smart")
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = OrangeAccent,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Mart")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun AutoChangingPromoBanner(
+    banners: List<com.example.lankasmartmart.model.Promotion>,
+    modifier: Modifier = Modifier,
+    onPromoClick: (com.example.lankasmartmart.model.Promotion) -> Unit = {}
+) {
+    val pagerState = rememberPagerState(pageCount = { banners.size })
+
+    // Auto-scroll effect
+    LaunchedEffect(banners) {
+        if (banners.isNotEmpty()) {
+            while (true) {
+                delay(4000) // Change banner every 4 seconds
+                val nextPage = (pagerState.currentPage + 1) % banners.size
+                pagerState.animateScrollToPage(nextPage)
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            PromotionBannerCard(
+                promotion = banners[page],
+                onPromoClick = { onPromoClick(banners[page]) }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Page indicators
         Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Lanka ",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = GreenPrimary
-            )
-            Text(
-                text = "Smart",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = OrangeAccent
-            )
-            Text(
-                text = "Mart",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = GreenPrimary
-            )
+            repeat(banners.size) { index ->
+                Box(
+                    modifier = Modifier
+                        .size(if (index == pagerState.currentPage) 8.dp else 6.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (index == pagerState.currentPage) PrimaryBlue
+                            else Color.LightGray
+                        )
+                )
+                if (index < banners.size - 1) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+            }
         }
     }
 }
 
 @Composable
-fun PromoBanner(
+fun PromotionBannerCard(
+    promotion: com.example.lankasmartmart.model.Promotion,
     modifier: Modifier = Modifier,
-    onShopNowClick: () -> Unit = {}
+    onPromoClick: () -> Unit = {}
 ) {
+    val backgroundColor = remember(promotion.backgroundColor) {
+        try {
+            Color(android.graphics.Color.parseColor(promotion.backgroundColor))
+        } catch (e: Exception) {
+            PrimaryGreen
+        }
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(20.dp),
-                spotColor = Color.Black.copy(alpha = 0.1f)
-            ),
-        shape = RoundedCornerShape(20.dp),
+            .height(160.dp)
+            .clickable { onPromoClick() },
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = BannerBlueBackground
-        )
+            containerColor = backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left content
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Up to 30% offer",
-                    fontSize = 20.sp,
+                    text = promotion.title,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.White,
+                    lineHeight = 28.sp
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Enjoy our big offer",
+                    text = promotion.subtitle,
                     fontSize = 14.sp,
-                    color = PrimaryBlue,
-                    fontWeight = FontWeight.Medium
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontWeight = FontWeight.Normal
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = onShopNowClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryBlue
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
+                Surface(
+                    onClick = onPromoClick,
+                    color = Color.White,
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "Shop Now",
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = backgroundColor
                     )
                 }
             }
 
-            // Right image placeholder
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingBasket,
-                    contentDescription = "Grocery basket",
-                    modifier = Modifier.size(60.dp),
-                    tint = Color(0xFF4CAF50)
-                )
-            }
+            // Right icon/image decoration
+            Icon(
+                imageVector = Icons.Default.LocalOffer,
+                contentDescription = null,
+                modifier = Modifier.size(80.dp),
+                tint = Color.White.copy(alpha = 0.15f)
+            )
         }
     }
 }
@@ -324,9 +421,7 @@ fun SectionHeader(
     onSeeAllClick: () -> Unit = {}
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -357,16 +452,12 @@ fun ProductCard(
     Card(
         modifier = modifier
             .width(160.dp)
-            .shadow(
-                elevation = 3.dp,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = Color.Black.copy(alpha = 0.08f)
-            )
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        )
+            containerColor = CardGrey
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -377,31 +468,15 @@ fun ProductCard(
                     .fillMaxWidth()
                     .height(120.dp)
             ) {
-                // Product image placeholder
-                Box(
+                // Product image
+                Image(
+                    painter = painterResource(id = product.imageRes),
+                    contentDescription = product.name,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(product.fallbackColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (product.imageRes != null) {
-                        // Use actual image if available
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription = product.name,
-                            modifier = Modifier.size(50.dp),
-                            tint = Color.Gray.copy(alpha = 0.3f)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription = product.name,
-                            modifier = Modifier.size(50.dp),
-                            tint = Color.Gray.copy(alpha = 0.3f)
-                        )
-                    }
-                }
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
 
                 // Add button
                 IconButton(
@@ -409,34 +484,32 @@ fun ProductCard(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .size(32.dp)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = CircleShape
-                        )
                         .background(Color.White, CircleShape)
+                        .shadow(2.dp, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add to cart",
                         tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Product name
             Text(
                 text = product.name,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Rating row
+            // Rating
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -455,7 +528,7 @@ fun ProductCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Price
             Text(
@@ -477,7 +550,8 @@ fun BottomNavBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = Color.White,
-        shadowElevation = 8.dp
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
         Row(
             modifier = Modifier
@@ -520,17 +594,9 @@ fun BottomNavItemView(
 
         Text(
             text = item.label,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             color = if (item.isSelected) PrimaryBlue else TextGray,
             fontWeight = if (item.isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun HomeScreenPreview() {
-    MaterialTheme {
-        HomeScreen()
     }
 }
