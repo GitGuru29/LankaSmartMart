@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,9 +26,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.example.lankasmartmart.utils.VoiceAssistant
+import android.widget.Toast
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lankasmartmart.model.Product
 import com.example.lankasmartmart.viewmodel.ShopViewModel
+import com.example.lankasmartmart.utils.*
 
 @Composable
 fun SearchScreen(
@@ -37,6 +48,37 @@ fun SearchScreen(
     val searchQuery by shopViewModel.searchQuery.collectAsState()
     val searchResults by shopViewModel.searchResults.collectAsState()
     val focusRequester = remember { FocusRequester() }
+    val context = LocalContext.current
+    var isListening by remember { mutableStateOf(false) }
+    
+    val voiceAssistant = remember {
+        VoiceAssistant(
+            context = context,
+            onResult = { result ->
+                shopViewModel.updateSearchQuery(result)
+            },
+            onError = { error ->
+                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+            },
+            onListeningStateChange = { isListening = it }
+        )
+    }
+    
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            voiceAssistant.startListening()
+        } else {
+            Toast.makeText(context, "Microphone permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    DisposableEffect(Unit) {
+        onDispose {
+            voiceAssistant.destroy()
+        }
+    }
     
     // Auto-focus search field on screen open
     LaunchedEffect(Unit) {
@@ -53,7 +95,16 @@ fun SearchScreen(
                 onQueryChange = { shopViewModel.updateSearchQuery(it) },
                 onClearClick = { shopViewModel.clearSearch() },
                 onBackClick = onBackClick,
-                focusRequester = focusRequester
+                focusRequester = focusRequester,
+                isListening = isListening,
+                onVoiceClick = {
+                    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                        voiceAssistant.startListening()
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -111,7 +162,9 @@ fun SearchTopBar(
     onQueryChange: (String) -> Unit,
     onClearClick: () -> Unit,
     onBackClick: () -> Unit,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
+    isListening: Boolean,
+    onVoiceClick: () -> Unit
 ) {
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     
@@ -137,7 +190,7 @@ fun SearchTopBar(
             // Back Button
             IconButton(onClick = onBackClick) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
                     tint = Color.White
                 )
@@ -190,17 +243,32 @@ fun SearchTopBar(
                         }
                     )
                     
-                    // Clear Button
-                    if (searchQuery.isNotEmpty()) {
+                    // Voice / Clear Button
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(
+                                onClick = onClearClick,
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        
                         Spacer(modifier = Modifier.width(8.dp))
+                        
                         IconButton(
-                            onClick = onClearClick,
+                            onClick = onVoiceClick,
                             modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
-                                tint = Color.White,
+                                imageVector = if (isListening) Icons.Default.MicNone else Icons.Default.Mic,
+                                contentDescription = "Voice Search",
+                                tint = if (isListening) Color.Red else Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -317,7 +385,7 @@ fun SearchProductCard(
             
             // Arrow Icon
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint = Color(0xFF9E9E9E)
             )

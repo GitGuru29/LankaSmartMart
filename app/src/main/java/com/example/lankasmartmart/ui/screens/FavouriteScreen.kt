@@ -90,7 +90,7 @@ fun FavouriteScreen(
                             favouriteItems.forEach { item ->
                                 val resName = context.resources.getResourceEntryName(item.imageRes)
                                 val product = Product(
-                                    id = "fav_${item.id}",
+                                    id = item.id,
                                     name = item.name,
                                     description = item.description,
                                     price = item.price.toDouble(),

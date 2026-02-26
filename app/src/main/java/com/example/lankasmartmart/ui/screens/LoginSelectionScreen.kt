@@ -42,21 +42,12 @@ fun LoginSelectionScreen(
                 .fillMaxWidth()
                 .height(280.dp)
         ) {
-            // Using a placeholder color background since image generation failed
-            // You can replace this with an actual image later
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F5))
+            Image(
+                painter = painterResource(id = R.drawable.loginimage),
+                contentDescription = "Groceries Header",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
-            
-            // If you have a groceries header image, uncomment this:
-            // Image(
-            //     painter = painterResource(id = R.drawable.groceries_header),
-            //     contentDescription = null,
-            //     modifier = Modifier.fillMaxSize(),
-            //     contentScale = ContentScale.Crop
-            // )
         }
 
         Spacer(modifier = Modifier.height(40.dp))
