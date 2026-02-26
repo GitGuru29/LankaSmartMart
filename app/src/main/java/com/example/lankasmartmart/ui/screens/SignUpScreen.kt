@@ -6,8 +6,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,30 +43,24 @@ fun SignUpScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFFFF0F0),
-                        Color(0xFFFFE8E8),
-                        Color.White
-                    )
-                )
-            )
+            .background(Color.White)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
-            // Logo
-            Image(
-                painter = painterResource(id = R.drawable.logo_large),
-                contentDescription = "Shopping Cart Logo",
-                modifier = Modifier.size(140.dp)
-            )
+            // Logo - Centered in start-aligned column
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_large),
+                    contentDescription = "Shopping Cart Logo",
+                    modifier = Modifier.size(140.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -82,7 +83,7 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Name Field
+            // Name Field - Switching to underlined style
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -90,26 +91,27 @@ fun SignUpScreen(
                     text = "Username",
                     fontSize = 14.sp,
                     color = Color(0xFF757575),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 0.dp)
                 )
-                OutlinedTextField(
+                TextField(
                     value = name,
                     onValueChange = { name = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter your name") },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                    placeholder = { Text("Kaveesha Dilshan") },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    singleLine = true
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Email Field
+            // Email Field - Switching to underlined style with green checkmark
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -117,27 +119,35 @@ fun SignUpScreen(
                     text = "Email",
                     fontSize = 14.sp,
                     color = Color(0xFF757575),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 0.dp)
                 )
-                OutlinedTextField(
+                TextField(
                     value = email,
                     onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter your email") },
+                    placeholder = { Text("kaveesha7@gmail.com") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Valid email",
+                            tint = Color(0xFF4CAF50)
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    singleLine = true
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Password Field
+            // Password Field - Switching to underlined style
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -145,9 +155,9 @@ fun SignUpScreen(
                     text = "Password",
                     fontSize = 14.sp,
                     color = Color(0xFF757575),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 0.dp)
                 )
-                OutlinedTextField(
+                TextField(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
@@ -162,19 +172,39 @@ fun SignUpScreen(
                             )
                         }
                     },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    singleLine = true
                 )
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Terms and Privacy Text
+            Text(
+                text = buildAnnotatedString {
+                    append("By continuing you agree to our ")
+                    withStyle(style = SpanStyle(color = Color(0xFF5B7FFF))) {
+                        append("Terms of Service")
+                    }
+                    append("\nand ")
+                    withStyle(style = SpanStyle(color = Color(0xFF5B7FFF))) {
+                        append("Privacy Policy.")
+                    }
+                },
+                fontSize = 13.sp,
+                color = Color(0xFF757575),
+                lineHeight = 18.sp
+            )
+
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sign Up Button
+            // Sign Up Button - "Sing Up" typo to match screenshot
             Button(
                 onClick = { onSignUpClick(name, email, password) },
                 modifier = Modifier
@@ -186,7 +216,7 @@ fun SignUpScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Sign Up",
+                    text = "Sing Up",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -195,26 +225,28 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sign In Link
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Already have an account? ",
-                    fontSize = 14.sp,
-                    color = Color(0xFF757575)
-                )
-                TextButton(
-                    onClick = onSignInClick,
-                    contentPadding = PaddingValues(0.dp)
+            // Sign In Link - Bottom centered
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Sign In",
+                        text = "Already have an account? ",
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF5B7FFF)
+                        color = Color.Black // Updated color
                     )
+                    TextButton(
+                        onClick = onSignInClick,
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Log In", // Updated text to match screenshot
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF5B7FFF)
+                        )
+                    }
                 }
             }
         }
