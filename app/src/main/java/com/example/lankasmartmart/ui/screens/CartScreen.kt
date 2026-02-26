@@ -346,7 +346,7 @@ private fun CartBottomBar(
                         color = Color(0xFF489E67)
                     ) {
                         Text(
-                            text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", total)}",
+                            text = "LKR ${String.format("%.2f", total)}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White,
