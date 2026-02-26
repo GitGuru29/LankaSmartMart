@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lankasmartmart.model.Product
 import com.example.lankasmartmart.viewmodel.ShopViewModel
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun SearchScreen(

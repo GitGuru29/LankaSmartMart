@@ -13,17 +13,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +31,24 @@ import com.example.lankasmartmart.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import kotlin.random.Random
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+
 
 @Composable
 fun SignUpScreen(
@@ -53,14 +61,10 @@ fun SignUpScreen(
     val authState by authViewModel.authState.collectAsState()
     
     // Form state
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var dateOfBirth by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var selectedCountryCode by remember { mutableStateOf("+94 🇱🇰") }
     
     // Google Sign-In setup
     val googleSignInClient = remember {
@@ -94,396 +98,189 @@ fun SignUpScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1F5E2A))
+            .background(Color.White)
     ) {
-        // Background pattern
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            // Grid pattern
-            val gridSpacing = 40.dp.toPx()
-            val gridColor = Color.White.copy(alpha = 0.05f)
-            
-            // Vertical lines
-            var x = 0f
-            while (x < size.width) {
-                drawLine(
-                    color = gridColor,
-                    start = Offset(x, 0f),
-                    end = Offset(x, size.height),
-                    strokeWidth = 1f
-                )
-                x += gridSpacing
-            }
-            
-            // Horizontal lines
-            var y = 0f
-            while (y < size.height) {
-                drawLine(
-                    color = gridColor,
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
-                    strokeWidth = 1f
-                )
-                y += gridSpacing
-            }
-            
-            // Star dots
-            repeat(30) {
-                val starX = Random.nextFloat() * size.width
-                val starY = Random.nextFloat() * size.height
-                val starSize = Random.nextFloat() * 3f + 2f
-                val starAlpha = Random.nextFloat() * 0.3f + 0.3f
-                
-                drawCircle(
-                    color = Color.White.copy(alpha = starAlpha),
-                    radius = starSize,
-                    center = Offset(starX, starY)
-                )
-            }
-        }
         
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(horizontal = 32.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.Start
         ) {
-            // Top Section - Back button and Title
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 48.dp, start = 24.dp, end = 24.dp, bottom = 24.dp)
-            ) {
-                // Back arrow
-                IconButton(
-                    onClick = onNavigateBack,
-                    modifier = Modifier.align(Alignment.Start)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Title
+            Spacer(modifier = Modifier.height(80.dp))
+
+            // Title
+            Text(
+                text = "Sign Up",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Enter your credentials to continue",
+                fontSize = 16.sp,
+                color = Color(0xFF757575)
+            )
+            
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Username Field
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Sign Up",
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    text = "Username",
+                    fontSize = 14.sp,
+                    color = Color(0xFF757575)
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Subtitle with link
-                Row(
+                TextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    placeholder = { Text("Kaveesha Dilshan") },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Already have an account? ",
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Log In",
-                        fontSize = 14.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier.clickable { onNavigateToLogin() }
-                    )
-                }
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
+                    ),
+                    singleLine = true
+                )
             }
             
-            // White Card with Form
-            Surface(
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Email Field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Email",
+                    fontSize = 14.sp,
+                    color = Color(0xFF757575)
+                )
+                TextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = { Text("kaveesha7@gmail.com") },
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                            contentDescription = "Valid email",
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
+                    ),
+                    singleLine = true
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Password Field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Password",
+                    fontSize = 14.sp,
+                    color = Color(0xFF757575)
+                )
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = { Text("••••••••") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                painter = painterResource(id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility),
+                                contentDescription = "Toggle password visibility",
+                                modifier = Modifier.size(20.dp),
+                                tint = Color(0xFF9E9E9E)
+                            )
+                        }
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
+                    ),
+                    singleLine = true
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Terms and Privacy Text
+            Text(
+                text = buildAnnotatedString {
+                    append("By continuing you agree to our ")
+                    withStyle(style = SpanStyle(color = Color(0xFF5B7FFF))) {
+                        append("Terms of Service")
+                    }
+                    append("\nand ")
+                    withStyle(style = SpanStyle(color = Color(0xFF5B7FFF))) {
+                        append("Privacy Policy.")
+                    }
+                },
+                fontSize = 13.sp,
+                color = Color(0xFF757575),
+                lineHeight = 18.sp
+            )
+            
+            Spacer(modifier = Modifier.height(40.dp))
+            
+            // Sign Up Button - "Sing Up" typo to match screenshot
+            Button(
+                onClick = { authViewModel.signUpWithEmail(email, password) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                color = Color.White,
-                shadowElevation = 8.dp
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5B7FFF)
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp)
-                ) {
-                    // First Name and Last Name Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // First Name
-                        OutlinedTextField(
-                            value = firstName,
-                            onValueChange = { firstName = it },
-                            label = { Text("First Name", fontSize = 12.sp) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = Color(0xFFE6EAF0),
-                                focusedBorderColor = Color(0xFF2E7D32),
-                                unfocusedContainerColor = Color(0xFFF5F5F5),
-                                focusedContainerColor = Color(0xFFF5F5F5)
-                            ),
-                            singleLine = true
-                        )
-                        
-                        // Last Name
-                        OutlinedTextField(
-                            value = lastName,
-                            onValueChange = { lastName = it },
-                            label = { Text("Last Name", fontSize = 12.sp) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = Color(0xFFE6EAF0),
-                                focusedBorderColor = Color(0xFF2E7D32),
-                                unfocusedContainerColor = Color(0xFFF5F5F5),
-                                focusedContainerColor = Color(0xFFF5F5F5)
-                            ),
-                            singleLine = true
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Email
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Email", fontSize = 12.sp) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color(0xFFE6EAF0),
-                            focusedBorderColor = Color(0xFF2E7D32),
-                            unfocusedContainerColor = Color(0xFFF5F5F5),
-                            focusedContainerColor = Color(0xFFF5F5F5)
-                        ),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        singleLine = true
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Date of Birth
-                    val calendar = java.util.Calendar.getInstance()
-                    val year = calendar.get(java.util.Calendar.YEAR)
-                    val month = calendar.get(java.util.Calendar.MONTH)
-                    val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+                Text(
+                    text = "Sign Up",
+                    fontSize = 18.sp,
 
-                    val datePickerDialog = android.app.DatePickerDialog(
-                        context,
-                        { _, selectedYear, selectedMonth, selectedDay ->
-                            dateOfBirth = "$selectedDay/${selectedMonth + 1}/$selectedYear"
-                        },
-                        year, month, day
-                    )
-
-                    OutlinedTextField(
-                        value = dateOfBirth,
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text("Date of Birth", fontSize = 12.sp) },
-                        placeholder = { Text("DD/MM/YYYY") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { datePickerDialog.show() },
-                        enabled = false, 
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color(0xFFE6EAF0),
-                            focusedBorderColor = Color(0xFF2E7D32),
-                            unfocusedContainerColor = Color(0xFFF5F5F5),
-                            focusedContainerColor = Color(0xFFF5F5F5),
-                            disabledContainerColor = Color(0xFFF5F5F5),
-                            disabledBorderColor = Color(0xFFE6EAF0),
-                            disabledTextColor = Color.Black,
-                            disabledLabelColor = Color(0xFF7C7C7C),
-                            disabledPlaceholderColor = Color(0xFF7C7C7C)
-                        ),
-                        trailingIcon = {
-                            Text(
-                                text = "📅",
-                                modifier = Modifier.clickable { datePickerDialog.show() }
-                            )
-                        }
-                    )
-
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Phone Number Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Country Code selector (Fixed to Sri Lanka)
-                        Surface(
-                            modifier = Modifier
-                                .width(100.dp)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFF5F5F5),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE6EAF0))
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = selectedCountryCode,
-                                    fontSize = 14.sp,
-                                    color = Color(0xFF212121)
-                                )
-                            }
-                        }
-                        
-                        // Phone Number
-                        OutlinedTextField(
-                            value = phoneNumber,
-                            onValueChange = { phoneNumber = it },
-                            label = { Text("Phone Number", fontSize = 12.sp) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = Color(0xFFE6EAF0),
-                                focusedBorderColor = Color(0xFF2E7D32),
-                                unfocusedContainerColor = Color(0xFFF5F5F5),
-                                focusedContainerColor = Color(0xFFF5F5F5)
-                            ),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            singleLine = true
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Password
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Password", fontSize = 12.sp) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color(0xFFE6EAF0),
-                            focusedBorderColor = Color(0xFF2E7D32),
-                            unfocusedContainerColor = Color(0xFFF5F5F5),
-                            focusedContainerColor = Color(0xFFF5F5F5)
-                        ),
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Text(
-                                    text = if (passwordVisible) "👁" else "👁‍🗨",
-                                    fontSize = 16.sp
-                                )
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true
-                    )
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Sign Up Button
-                    Button(
-                        onClick = {
-                            // Handle sign up
-                            authViewModel.signUpWithEmail(email, password)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2E7D32)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = "Log In",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Or Divider
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Divider(
-                            modifier = Modifier.weight(1f),
-                            color = Color(0xFFE6EAF0)
-                        )
-                        Text(
-                            text = "  Or  ",
-                            fontSize = 14.sp,
-                            color = Color(0xFF757575)
-                        )
-                        Divider(
-                            modifier = Modifier.weight(1f),
-                            color = Color(0xFFE6EAF0)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Google Sign Up Button
-                    OutlinedButton(
-                        onClick = {
-                            val signInIntent = googleSignInClient.signInIntent
-                            googleSignInLauncher.launch(signInIntent)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.White,
-                            contentColor = Color(0xFF212121)
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            Color(0xFFE6EAF0)
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "G",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4285F4)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "Sign up with Google",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Log In Link
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Already have an account? ",
+                    fontSize = 14.sp,
+                    color = Color(0xFF757575)
+                )
+                Text(
+                    text = "Log In",
+                    fontSize = 14.sp,
+                    color = Color(0xFF5B7FFF),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { onNavigateToLogin() }
+                )
             }
         }
     }

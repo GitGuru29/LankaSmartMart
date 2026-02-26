@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.lankasmartmart.R
 import com.example.lankasmartmart.ui.theme.DesignSystem
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun SplashScreen(onNavigateToAuth: () -> Unit) {

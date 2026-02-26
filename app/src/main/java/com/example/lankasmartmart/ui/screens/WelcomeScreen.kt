@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lankasmartmart.R
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun WelcomeScreen(

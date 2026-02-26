@@ -106,11 +106,18 @@ sealed class Screen {
 
 @Composable
 fun LankaSmartMartApp() {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Welcome) }
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Splash) }
     var isAuthenticated by remember { mutableStateOf(false) }
     val shopViewModel: ShopViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
+
+    // Check for existing session at startup
+    LaunchedEffect(Unit) {
+        if (authViewModel.currentUser != null) {
+            isAuthenticated = true
+        }
+    }
 
     // ── Shake-to-Cart Gesture ──────────────────────────────────────────────
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -187,7 +194,7 @@ fun LankaSmartMartApp() {
         is Screen.Splash -> {
             SplashScreen(
                 onNavigateToAuth = {
-                    currentScreen = if (isAuthenticated) Screen.Home else Screen.Auth
+                    currentScreen = if (isAuthenticated) Screen.Home else Screen.Welcome
                 }
             )
         }
