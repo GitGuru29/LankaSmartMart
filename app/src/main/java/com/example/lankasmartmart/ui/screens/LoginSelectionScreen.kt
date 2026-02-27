@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,12 +42,21 @@ fun LoginSelectionScreen(
                 .fillMaxWidth()
                 .height(280.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.loginimage),
-                contentDescription = "Groceries Header",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+            // Using a placeholder color background since image generation failed
+            // You can replace this with an actual image later
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F5F5))
             )
+            
+            // If you have a groceries header image, uncomment this:
+            // Image(
+            //     painter = painterResource(id = R.drawable.groceries_header),
+            //     contentDescription = null,
+            //     modifier = Modifier.fillMaxSize(),
+            //     contentScale = ContentScale.Crop
+            // )
         }
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -102,7 +111,7 @@ fun LoginSelectionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = Color(0xFFE0E0E0)
                 )
@@ -112,7 +121,7 @@ fun LoginSelectionScreen(
                     color = Color(0xFF9E9E9E),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = Color(0xFFE0E0E0)
                 )

@@ -1,4 +1,0 @@
-.\gradlew : e: file:///
-  ed: (e: file:///C:   
-e: file:///C:/Users/Kav
-e: file:///C:/Users/Kav

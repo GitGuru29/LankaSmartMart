@@ -14,3 +14,7 @@
 .cxx
 local.properties
 google-services.json
+
+# Exclude PDF and TXT files
+*.pdf
+*.txt

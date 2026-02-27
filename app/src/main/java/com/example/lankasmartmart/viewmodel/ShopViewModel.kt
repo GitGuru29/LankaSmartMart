@@ -1,19 +1,30 @@
 package com.example.lankasmartmart.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lankasmartmart.data.local.DatabaseProvider
+import com.example.lankasmartmart.data.local.entity.CartItemEntity
+import com.example.lankasmartmart.data.local.entity.SearchHistoryEntity
 import com.example.lankasmartmart.model.Category
 import com.example.lankasmartmart.model.Product
 import com.example.lankasmartmart.repository.ProductRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class ShopViewModel : ViewModel() {
+class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val productRepository = ProductRepository()
     private val firestore = FirebaseFirestore.getInstance()
+    
+    // Room DAOs
+    private val db = DatabaseProvider.getDatabase(application)
+    private val cartDao = db.cartDao()
+    private val searchHistoryDao = db.searchHistoryDao()
     
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> = _categories
@@ -40,6 +51,10 @@ class ShopViewModel : ViewModel() {
     private val _searchResults = MutableStateFlow<List<Product>>(emptyList())
     val searchResults: StateFlow<List<Product>> = _searchResults
     
+    // Search History from Room
+    val searchHistory = searchHistoryDao.getRecentSearches()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    
     // Promotion State
     private val _promotions = MutableStateFlow<List<com.example.lankasmartmart.model.Promotion>>(emptyList())
     val promotions: StateFlow<List<com.example.lankasmartmart.model.Promotion>> = _promotions
@@ -48,8 +63,7 @@ class ShopViewModel : ViewModel() {
         loadCategories()
         loadProducts()
         loadPromotions()
-        loadMockCartData() // Add some test items
-        updateCartCalculations()
+        loadCartFromDatabase()
     }
     
     // Load categories from Firestore (or use mock data)
@@ -1088,18 +1102,79 @@ class ShopViewModel : ViewModel() {
         )
     }
     
-    // Cart Management Functions
+    // =============================================
+    // Cart Management Functions (Room-backed)
+    // =============================================
+    
+    /**
+     * Load cart items from Room database on startup.
+     * Falls back to mock data if cart is empty (first launch).
+     */
+    private fun loadCartFromDatabase() {
+        viewModelScope.launch {
+            cartDao.getAllCartItems().collect { cartEntities ->
+                if (cartEntities.isEmpty() && _cartItems.value.isEmpty()) {
+                    // First launch — seed with mock data
+                    loadMockCartData()
+                } else {
+                    // Rebuild CartItem objects from Room entities + loaded products
+                    val products = _products.value
+                    val cartItemList = cartEntities.mapNotNull { entity ->
+                        val product = products.find { it.id == entity.productId }
+                            ?: Product(
+                                id = entity.productId,
+                                name = entity.productName,
+                                price = entity.productPrice,
+                                imageUrl = entity.productImageUrl,
+                                category = entity.category,
+                                unit = entity.unit,
+                                brand = entity.brand,
+                                discount = entity.discount,
+                                isOnSale = entity.isOnSale,
+                                originalPrice = entity.originalPrice
+                            )
+                        com.example.lankasmartmart.model.CartItem(
+                            product = product,
+                            quantity = entity.quantity
+                        )
+                    }
+                    _cartItems.value = cartItemList
+                    updateCartCalculations()
+                }
+            }
+        }
+    }
+    
     fun addToCart(product: Product, quantity: Int = 1) {
         val currentCart = _cartItems.value.toMutableList()
         val existingItem = currentCart.find { it.product.id == product.id }
         
         if (existingItem != null) {
-            // Update quantity if already in cart
             val index = currentCart.indexOf(existingItem)
-            currentCart[index] = existingItem.copy(quantity = existingItem.quantity + quantity)
+            val newQty = existingItem.quantity + quantity
+            currentCart[index] = existingItem.copy(quantity = newQty)
+            // Update in Room
+            viewModelScope.launch { cartDao.updateQuantity(product.id, newQty) }
         } else {
-            // Add new item
             currentCart.add(com.example.lankasmartmart.model.CartItem(product = product, quantity = quantity))
+            // Insert into Room
+            viewModelScope.launch {
+                cartDao.insertCartItem(
+                    CartItemEntity(
+                        productId = product.id,
+                        productName = product.name,
+                        productPrice = product.price,
+                        productImageUrl = product.imageUrl,
+                        quantity = quantity,
+                        category = product.category,
+                        unit = product.unit,
+                        brand = product.brand,
+                        discount = product.discount,
+                        isOnSale = product.isOnSale,
+                        originalPrice = product.originalPrice
+                    )
+                )
+            }
         }
         
         _cartItems.value = currentCart
@@ -1108,6 +1183,7 @@ class ShopViewModel : ViewModel() {
     
     fun removeFromCart(productId: String) {
         _cartItems.value = _cartItems.value.filter { it.product.id != productId }
+        viewModelScope.launch { cartDao.deleteCartItem(productId) }
         updateCartCalculations()
     }
     
@@ -1123,12 +1199,14 @@ class ShopViewModel : ViewModel() {
         if (itemIndex != -1) {
             currentCart[itemIndex] = currentCart[itemIndex].copy(quantity = newQuantity)
             _cartItems.value = currentCart
+            viewModelScope.launch { cartDao.updateQuantity(productId, newQuantity) }
             updateCartCalculations()
         }
     }
     
     fun clearCart() {
         _cartItems.value = emptyList()
+        viewModelScope.launch { cartDao.clearCart() }
         updateCartCalculations()
     }
     
@@ -1143,29 +1221,71 @@ class ShopViewModel : ViewModel() {
         (cartTotal as MutableStateFlow).value = total
     }
     
-    // Load mock cart data for testing
+    // Load mock cart data for testing (first launch only)
     private fun loadMockCartData() {
         val mockProducts = getMockProducts()
-        _cartItems.value = listOf(
+        val mockCartItems = listOf(
             com.example.lankasmartmart.model.CartItem(
-                product = mockProducts.first { it.id == "1" }, // Rice
+                product = mockProducts.first { it.id == "1" },
                 quantity = 2
             ),
             com.example.lankasmartmart.model.CartItem(
-                product = mockProducts.first { it.id == "8" }, // Milk
+                product = mockProducts.first { it.id == "8" },
                 quantity = 1
             ),
             com.example.lankasmartmart.model.CartItem(
-                product = mockProducts.first { it.id == "12" }, // Crackers
+                product = mockProducts.first { it.id == "12" },
                 quantity = 3
             )
         )
+        _cartItems.value = mockCartItems
+        updateCartCalculations()
+        
+        // Persist mock items to Room
+        viewModelScope.launch {
+            mockCartItems.forEach { item ->
+                cartDao.insertCartItem(
+                    CartItemEntity(
+                        productId = item.product.id,
+                        productName = item.product.name,
+                        productPrice = item.product.price,
+                        productImageUrl = item.product.imageUrl,
+                        quantity = item.quantity,
+                        category = item.product.category,
+                        unit = item.product.unit,
+                        brand = item.product.brand,
+                        discount = item.product.discount,
+                        isOnSale = item.product.isOnSale,
+                        originalPrice = item.product.originalPrice
+                    )
+                )
+            }
+        }
     }
     
-    // Search Functions
+    // =============================================
+    // Search Functions (with Room history)
+    // =============================================
+    
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
         performSearch(query)
+    }
+    
+    /**
+     * Save a search query to Room history (call when user submits a search)
+     */
+    fun saveSearchQuery(query: String) {
+        if (query.isBlank()) return
+        viewModelScope.launch {
+            searchHistoryDao.insertQuery(SearchHistoryEntity(query = query.trim()))
+        }
+    }
+    
+    fun clearSearchHistory() {
+        viewModelScope.launch {
+            searchHistoryDao.clearHistory()
+        }
     }
     
     private fun performSearch(query: String) {
