@@ -43,7 +43,7 @@ private val BackgroundGrey = Color(0xFFF5F5F5)
 @Composable
 fun FindProductsScreen(
     modifier: Modifier = Modifier,
-    onCategoryClick: (String) -> Unit = {},
+    onCategoryClick: (String, String) -> Unit = { _, _ -> },
     onSearchClick: () -> Unit = {},
     onCartClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
@@ -52,44 +52,44 @@ fun FindProductsScreen(
     val categories = remember {
         listOf(
             CategoryItem(
-                id = "fruits_veg",
+                id = "fruits",
                 name = "Fresh Fruits\n& Vegetable",
-                imageRes = R.drawable.img_carrots,
+                imageRes = R.drawable.vegetables,
                 backgroundColor = Color(0xFFE8F5E9),
                 borderColor = Color(0xFF4CAF50)
             ),
             CategoryItem(
-                id = "cooking_oil",
+                id = "groceries",
                 name = "Cooking Oil\n& Ghee",
-                imageRes = R.drawable.img_basmati_rice, // Fallback
+                imageRes = R.drawable.oil,
                 backgroundColor = Color(0xFFFFF8E1),
                 borderColor = Color(0xFFFFC107)
             ),
             CategoryItem(
-                id = "meat_fish",
+                id = "meat",
                 name = "Meat & Fish",
-                imageRes = R.drawable.img_red_dhal, // Fallback
-                backgroundColor = Color(0xFFFCE4EC),
-                borderColor = Color(0xFFE91E63)
+                imageRes = R.drawable.meet,
+                backgroundColor = Color(0xFFFFF0F0),
+                borderColor = Color(0xFFF44336)
             ),
             CategoryItem(
                 id = "bakery",
                 name = "Bakery & Snacks",
-                imageRes = R.drawable.img_cream_cracker,
+                imageRes = R.drawable.bakery,
                 backgroundColor = Color(0xFFF3E5F5),
                 borderColor = Color(0xFF9C27B0)
             ),
             CategoryItem(
                 id = "dairy",
                 name = "Dairy & Eggs",
-                imageRes = R.drawable.img_curd,
-                backgroundColor = Color(0xFFFFFDE7),
-                borderColor = Color(0xFFFFC107)
+                imageRes = R.drawable.dairy,
+                backgroundColor = Color(0xFFFCE4EC),
+                borderColor = Color(0xFFE91E63)
             ),
             CategoryItem(
                 id = "beverages",
                 name = "Beverages",
-                imageRes = R.drawable.img_mango_juice,
+                imageRes = R.drawable.beverages,
                 backgroundColor = Color(0xFFE1F5FE),
                 borderColor = Color(0xFF2196F3)
             )
@@ -144,7 +144,7 @@ fun FindProductsScreen(
                 items(categories) { category ->
                     CategoryCard(
                         category = category,
-                        onClick = { onCategoryClick(category.id) }
+                        onClick = { onCategoryClick(category.id, category.name.replace("\n", " ")) }
                     )
                 }
             }

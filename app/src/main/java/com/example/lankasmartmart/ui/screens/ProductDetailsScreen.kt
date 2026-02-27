@@ -1,28 +1,46 @@
 package com.example.lankasmartmart.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lankasmartmart.R
 import com.example.lankasmartmart.model.Product
+import com.example.lankasmartmart.ui.theme.GroceryGreen
+import com.example.lankasmartmart.ui.theme.GroceryTextDark
+import com.example.lankasmartmart.ui.theme.GroceryTextGrey
 import com.example.lankasmartmart.viewmodel.ShopViewModel
+import com.example.lankasmartmart.utils.*
 
 @Composable
 fun ProductDetailsScreen(
@@ -35,87 +53,250 @@ fun ProductDetailsScreen(
     val product = products.find { it.id == productId }
     
     var quantity by remember { mutableIntStateOf(1) }
+    var isFavourite by remember { mutableStateOf(false) }
+    var isDescriptionExpanded by remember { mutableStateOf(false) }
+    var isReviewsExpanded by remember { mutableStateOf(false) }
+    var showReviewDialog by remember { mutableStateOf(false) }
     var showAddedToast by remember { mutableStateOf(false) }
     
     if (product == null) {
-        // Product not found
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Product not found")
         }
         return
     }
     
     Scaffold(
-        containerColor = Color(0xFFF8FFFE),
+        containerColor = Color.White,
         contentWindowInsets = WindowInsets(0.dp),
-        topBar = {
-            ProductDetailsTopBar(
-                productName = product.name,
-                onBackClick = onBackClick
-            )
-        },
         bottomBar = {
-            AddToCartBottomBar(
-                quantity = quantity,
-                price = product.price,
-                onAddToCart = {
-                    shopViewModel.addToCart(product, quantity)
-                    showAddedToast = true
+            Box(modifier = Modifier.padding(24.dp)) {
+                Button(
+                    onClick = {
+                        shopViewModel.addToCart(product, quantity)
+                        showAddedToast = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(67.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF5383EC)
+                    )
+                ) {
+                    Text(
+                        text = "Add To Basket",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 }
-            )
+            }
         }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 16.dp)
+                .padding(bottom = paddingValues.calculateBottomPadding())
+                .verticalScroll(rememberScrollState())
         ) {
-            // Product Hero Section
-            item {
-                ProductHeroSection(product = product)
-            }
-            
-            // Product Info Card
-            item {
-                ProductInfoCard(product = product)
-            }
-            
-            // Quantity Selector
-            item {
-                QuantitySelectorCard(
-                    quantity = quantity,
-                    maxQuantity = product.stock,
-                    onQuantityChange = { newQuantity ->
-                        quantity = newQuantity.coerceIn(1, product.stock)
+            // Hero Section
+            ProductHeroSection(
+                product = product,
+                onBackClick = onBackClick,
+                onShareClick = { /* Share logic */ }
+            )
+
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Spacer(modifier = Modifier.height(30.dp))
+
+                // Name & Favourite row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = product.name,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GroceryTextDark
+                    )
+                    IconButton(onClick = { isFavourite = !isFavourite }) {
+                        Icon(
+                            imageVector = if (isFavourite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Favourite",
+                            tint = if (isFavourite) Color.Red else GroceryTextGrey,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = "${product.unit}, Price",
+                    fontSize = 16.sp,
+                    color = GroceryTextGrey
+                )
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                // Quantity & Price Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Remove,
+                            contentDescription = "Decrease",
+                            tint = GroceryTextGrey,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clickable { if (quantity > 1) quantity-- }
+                        )
+                        Spacer(modifier = Modifier.width(20.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(45.dp)
+                                .border(1.dp, Color(0xFFE2E2E2), RoundedCornerShape(17.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "$quantity",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = GroceryTextDark
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(20.dp))
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Increase",
+                            tint = GroceryGreen,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clickable { quantity++ }
+                        )
+                    }
+
+                    Text(
+                        text = "LKR ${(product.discountedPrice * quantity).toInt()}",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GroceryTextDark
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+                HorizontalDivider(color = Color(0xFFE2E2E2), thickness = 1.dp)
+
+                // Product Detail Section
+                ExpandableDetailRow(
+                    label = "Product Detail",
+                    isExpanded = isDescriptionExpanded,
+                    onToggle = { isDescriptionExpanded = !isDescriptionExpanded }
+                ) {
+                    Text(
+                        text = product.description,
+                        fontSize = 13.sp,
+                        color = GroceryTextGrey,
+                        lineHeight = 21.sp
+                    )
+                }
+
+                HorizontalDivider(color = Color(0xFFE2E2E2), thickness = 1.dp)
+
+                // Nutritions Row
+                ClickableInfoRow(
+                    label = "Nutritions",
+                    value = {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(Color(0xFFEBEBEB))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "100g",
+                                fontSize = 9.sp,
+                                color = GroceryTextGrey
+                            )
+                        }
                     }
                 )
+
+                HorizontalDivider(color = Color(0xFFE2E2E2), thickness = 1.dp)
+
+                // Review Section
+                ExpandableDetailRow(
+                    label = "Review",
+                    isExpanded = isReviewsExpanded,
+                    onToggle = { isReviewsExpanded = !isReviewsExpanded }
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                repeat(5) { index ->
+                                    Icon(
+                                        imageVector = if (index < product.rating.toInt()) Icons.Default.Star else Icons.Default.StarBorder,
+                                        contentDescription = null,
+                                        tint = Color(0xFFF3603F),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "${product.rating} (${product.reviewCount} reviews)",
+                                    fontSize = 14.sp,
+                                    color = GroceryTextDark,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            Text(
+                                text = "Write a review",
+                                fontSize = 14.sp,
+                                color = GroceryGreen,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { showReviewDialog = true }
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        if (product.reviews.isEmpty()) {
+                            Text(
+                                text = "No reviews yet. Be the first to review!",
+                                fontSize = 13.sp,
+                                color = GroceryTextGrey,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        } else {
+                            product.reviews.forEach { review ->
+                                ReviewItem(review = review)
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
             }
-            
-            // Description
-            item {
-                DescriptionCard(description = product.description)
+    }
+}
+    
+    if (showReviewDialog) {
+        AddReviewDialog(
+            onDismiss = { showReviewDialog = false },
+            onSubmit = { rating, comment ->
+                shopViewModel.addProductReview(product.id, rating, comment)
+                showReviewDialog = false
             }
-            
-            // Ratings & Reviews
-            item {
-                RatingsReviewsCard(
-                    rating = product.rating,
-                    reviewCount = product.reviewCount
-                )
-            }
-        }
-        
-        // Toast/Snackbar for added to cart
-        if (showAddedToast) {
-            LaunchedEffect(Unit) {
-                kotlinx.coroutines.delay(2000)
-                showAddedToast = false
-            }
-        }
+        )
     }
     
     if (showAddedToast) {
@@ -154,518 +335,283 @@ fun ProductDetailsScreen(
 }
 
 @Composable
-fun ProductDetailsTopBar(
-    productName: String,
-    onBackClick: () -> Unit
+private fun ProductHeroSection(
+    product: Product,
+    onBackClick: () -> Unit,
+    onShareClick: () -> Unit
 ) {
-    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    
+    val context = LocalContext.current
+    val imageRes = remember(product.name) {
+        getProductImageRes(context, product.name)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary
-                    )
-                )
+            .height(370.dp)
+            .clip(RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp))
+            .background(Color(0xFFF2F3F2))
+    ) {
+        // Status bar icons (simplified as an image/box overlay in real implementation)
+        // Back & Share Buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp)
+                .padding(horizontal = 24.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                contentDescription = "Back",
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onBackClick() },
+                tint = Color.Black
             )
-            .padding(top = statusBarHeight)
-            .padding(horizontal = 16.dp, vertical = 16.dp)
+            Icon(
+                imageVector = Icons.Default.Share, // Fixed: Using standard Share icon
+                contentDescription = "Share",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onShareClick() },
+                tint = Color.Black
+            )
+        }
+
+        // Product Image
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (imageRes != null) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = product.name,
+                    modifier = Modifier.size(300.dp, 200.dp),
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                Text(
+                    text = getCategoryEmoji(product.category),
+                    fontSize = 120.sp
+                )
+            }
+        }
+
+        // Carousel Indicators
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 30.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(15.dp, 3.dp)
+                    .clip(CircleShape)
+                    .background(GroceryGreen)
+            )
+            Box(
+                modifier = Modifier
+                    .size(3.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFB3B3B3))
+            )
+            Box(
+                modifier = Modifier
+                    .size(3.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFB3B3B3))
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClickableInfoRow(
+    label: String,
+    value: @Composable () -> Unit = {},
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 18.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = GroceryTextDark
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            value()
+            Spacer(modifier = Modifier.width(10.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = GroceryTextDark,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExpandableDetailRow(
+    label: String,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(vertical = 18.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.White
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(8.dp))
-            
-            Text(
-                text = productName,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-fun ProductHeroSection(product: Product) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // Large Product Icon
-            Surface(
-                shape = CircleShape,
-                color = getCategoryColor(product.category),
-                modifier = Modifier
-                    .size(140.dp)
-                    .shadow(8.dp, CircleShape)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = getCategoryEmoji(product.category),
-                        fontSize = 64.sp
-                    )
-                }
-            }
-            
-            // Sale Badge
-            if (product.isOnSale) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primary
-                ) {
-                    Text(
-                        text = "SALE ${product.discount}% OFF",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ProductInfoCard(product: Product) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            // Product Name & Rating
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Text(
-                    text = product.name,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF212121),
-                    modifier = Modifier.weight(1f)
-                )
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color(0xFFFFA726),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = String.format(java.util.Locale.getDefault(), "%.1f", product.rating),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF212121)
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Brand & Unit
-            Text(
-                text = "${product.brand} • ${product.unit}",
-                fontSize = 14.sp,
-                color = Color(0xFF757575)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Price
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", product.price)}",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                
-                if (product.isOnSale && product.originalPrice != null) {
-                    Text(
-                        text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", product.originalPrice)}",
-                        fontSize = 16.sp,
-                        color = Color(0xFF757575),
-                        textDecoration = TextDecoration.LineThrough
-                    )
-                    
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    ) {
-                        Text(
-                            text = "-${product.discount}%",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Stock Status
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            color = if (product.stock > 10) MaterialTheme.colorScheme.primary else Color(0xFFFFA726),
-                            shape = CircleShape
-                        )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (product.stock > 10) "In Stock (${product.stock} available)" else "Only ${product.stock} left!",
-                    fontSize = 14.sp,
-                    color = if (product.stock > 10) MaterialTheme.colorScheme.primary else Color(0xFFFFA726),
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun QuantitySelectorCard(
-    quantity: Int,
-    maxQuantity: Int,
-    onQuantityChange: (Int) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Quantity",
+                text = label,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF212121)
+                color = GroceryTextDark
             )
-            
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Decrease Button
-                Surface(
-                    shape = CircleShape,
-                    color = if (quantity > 1) MaterialTheme.colorScheme.primary else Color(0xFFE0E0E0),
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable(enabled = quantity > 1) {
-                            onQuantityChange(quantity - 1)
-                        }
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Decrease",
-                            tint = if (quantity > 1) Color.White else Color(0xFF9E9E9E),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-                
-                // Quantity
-                Text(
-                    text = "$quantity",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF212121)
-                )
-                
-                // Increase Button
-                Surface(
-                    shape = CircleShape,
-                    color = if (quantity < maxQuantity) MaterialTheme.colorScheme.primary else Color(0xFFE0E0E0),
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable(enabled = quantity < maxQuantity) {
-                            onQuantityChange(quantity + 1)
-                        }
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Increase",
-                            tint = if (quantity < maxQuantity) Color.White else Color(0xFF9E9E9E),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = GroceryTextDark,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(modifier = Modifier.padding(top = 10.dp)) {
+                content()
             }
         }
     }
 }
 
 @Composable
-fun DescriptionCard(description: String) {
-    Card(
+fun ReviewItem(review: com.example.lankasmartmart.model.Review) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .padding(vertical = 4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Text(
-                text = "Description",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF212121)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = description,
-                fontSize = 14.sp,
-                color = Color(0xFF616161),
-                lineHeight = 20.sp
-            )
-        }
-    }
-}
-
-@Composable
-fun RatingsReviewsCard(
-    rating: Float,
-    reviewCount: Int
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Ratings & Reviews",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF212121)
-                )
-                
-                Text(
-                    text = "($reviewCount reviews)",
-                    fontSize = 14.sp,
-                    color = Color(0xFF757575)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Star Display
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                repeat(5) { index ->
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = if (index < rating.toInt()) Color(0xFFFFA726) else Color(0xFFE0E0E0),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = String.format(java.util.Locale.getDefault(), "%.1f/5.0", rating),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF212121)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Divider(color = Color(0xFFE0E0E0))
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Sample Reviews
-            SampleReviewItem("John D.", 5f, "Excellent quality! Highly recommended.", "2 days ago")
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            SampleReviewItem("Sarah M.", 4f, "Good product, fast delivery.", "1 week ago")
-        }
-    }
-}
-
-@Composable
-fun SampleReviewItem(
-    userName: String,
-    rating: Float,
-    comment: String,
-    date: String
-) {
-    Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = userName,
+                text = review.userName,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF212121)
+                fontWeight = FontWeight.Bold,
+                color = GroceryTextDark
             )
             Text(
-                text = date,
+                text = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(review.timestamp)),
                 fontSize = 12.sp,
-                color = Color(0xFF9E9E9E)
+                color = GroceryTextGrey
             )
         }
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
+        Row(modifier = Modifier.padding(vertical = 4.dp)) {
             repeat(5) { index ->
                 Icon(
-                    imageVector = Icons.Default.Star,
+                    imageVector = if (index < review.rating) Icons.Default.Star else Icons.Default.StarBorder,
                     contentDescription = null,
-                    tint = if (index < rating.toInt()) Color(0xFFFFA726) else Color(0xFFE0E0E0),
-                    modifier = Modifier.size(14.dp)
+                    tint = Color(0xFFF3603F),
+                    modifier = Modifier.size(12.dp)
                 )
             }
         }
-        
-        Spacer(modifier = Modifier.height(6.dp))
-        
         Text(
-            text = comment,
+            text = review.comment,
             fontSize = 13.sp,
-            color = Color(0xFF616161),
+            color = GroceryTextGrey,
             lineHeight = 18.sp
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddToCartBottomBar(
-    quantity: Int,
-    price: Double,
-    onAddToCart: () -> Unit
+fun AddReviewDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (Int, String) -> Unit
 ) {
-    Surface(
-        shadowElevation = 12.dp,
-        color = Color.White
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Button(
-                onClick = onAddToCart,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+    var rating by remember { mutableIntStateOf(5) }
+    var comment by remember { mutableStateOf("") }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Write a Review", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text("Select Rating", fontSize = 14.sp, color = GroceryTextGrey)
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    repeat(5) { index ->
                         Icon(
-                            imageVector = Icons.Default.ShoppingCart,
+                            imageVector = if (index < rating) Icons.Default.Star else Icons.Default.StarBorder,
                             contentDescription = null,
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Add to Cart ($quantity)",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            tint = Color(0xFFF3603F),
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clickable { rating = index + 1 }
                         )
                     }
-                    
-                    Text(
-                        text = "LKR ${String.format(java.util.Locale.getDefault(), "%.2f", price * quantity)}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
                 }
+                
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = { comment = it },
+                    placeholder = { Text("Your comments...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    shape = RoundedCornerShape(12.dp)
+                )
             }
-        }
-    }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSubmit(rating, comment) },
+                enabled = comment.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = GroceryGreen)
+            ) {
+                Text("Submit")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        containerColor = Color.White
+    )
 }
+
+// ─── Helper Functions (Copied from CartScreen or shared) ───────────────────────
+
+
+
