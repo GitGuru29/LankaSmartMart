@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -90,7 +90,7 @@ fun FavouriteScreen(
                             favouriteItems.forEach { item ->
                                 val resName = context.resources.getResourceEntryName(item.imageRes)
                                 val product = Product(
-                                    id = "fav_${item.id}",
+                                    id = item.id,
                                     name = item.name,
                                     description = item.description,
                                     price = item.price.toDouble(),
@@ -189,7 +189,7 @@ fun FavouriteItemRow(item: FavouriteItem) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Icon(
-                imageVector = Icons.Default.ArrowForwardIos,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
                 tint = Color.Black

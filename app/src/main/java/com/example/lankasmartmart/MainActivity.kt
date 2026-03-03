@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Alignment
@@ -249,6 +249,17 @@ fun LankaSmartMartApp() {
                 onProfileClick = {
                     currentScreen = Screen.Profile
                 },
+                onProductClick = { productItem ->
+                    currentScreen = Screen.ProductDetails(productItem.id.toString())
+                },
+                onAddToCart = { productItem ->
+                    // Map ProductItem to Product for ViewModel
+                    val product = shopViewModel.products.value.find { it.id == productItem.id.toString() }
+                    if (product != null) {
+                        shopViewModel.addToCart(product, 1)
+                        Toast.makeText(context, "Added ${product.name} to cart", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 onBottomNavClick = handleBottomNavClick
             )
         }
@@ -276,10 +287,10 @@ fun LankaSmartMartApp() {
         }
         is Screen.FindProducts -> {
             FindProductsScreen(
-                onCategoryClick = { categoryId ->
+                onCategoryClick = { categoryId, categoryName ->
                     currentScreen = Screen.ProductList(
                         categoryId = categoryId,
-                        categoryName = categoryId
+                        categoryName = categoryName
                     )
                 },
                 onSearchClick = {
@@ -395,7 +406,7 @@ fun LankaSmartMartApp() {
             OrderConfirmationScreen(
                 orderId = screen.orderId,
                 onGoToHome = { currentScreen = Screen.Home },
-                onViewOrders = { currentScreen = Screen.OrderHistory }
+                onTrackOrder = { currentScreen = Screen.TrackOrderGeneric }
             )
         }
         is Screen.OrderHistory -> {

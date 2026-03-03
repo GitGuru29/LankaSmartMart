@@ -128,7 +128,7 @@ fun SecondaryButton(
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.primary
         ),
-        border = ButtonDefaults.outlinedButtonBorder,
+        border = ButtonDefaults.outlinedButtonBorder(enabled = true),
         interactionSource = interactionSource
     ) {
         Row(

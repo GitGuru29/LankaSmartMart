@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -95,15 +96,18 @@ fun MapAddressPickerScreen(
     ) { isGranted ->
         if (isGranted) {
             // Get current location
-            @SuppressLint("MissingPermission")
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
-                    val currentLatLng = LatLng(it.latitude, it.longitude)
-                    selectedLocation = currentLatLng
-                    cameraPositionState.position = CameraPosition.fromLatLngZoom(currentLatLng, 15f)
-                    geocodeLocation(currentLatLng)
+            try {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    location?.let {
+                        val currentLatLng = LatLng(it.latitude, it.longitude)
+                        selectedLocation = currentLatLng
+                        cameraPositionState.position = CameraPosition.fromLatLngZoom(currentLatLng, 15f)
+                        geocodeLocation(currentLatLng)
+                    }
                 }
+            } catch (e: SecurityException) {
+                e.printStackTrace()
             }
         }
     }
@@ -216,7 +220,7 @@ fun MapAddressPickerScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
