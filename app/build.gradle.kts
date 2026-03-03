@@ -112,11 +112,14 @@ dependencies {
     // JSON Parsing
     implementation("com.google.code.gson:gson:2.10.1")
 
+<<<<<<< HEAD
     // Room Database (SQLite)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+=======
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

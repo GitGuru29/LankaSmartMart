@@ -341,7 +341,11 @@ fun PromotionBannerCard(
 ) {
     val backgroundColor = remember(promotion.backgroundColor) {
         try {
+<<<<<<< HEAD
             Color(promotion.backgroundColor.toColorInt())
+=======
+            Color(android.graphics.Color.parseColor(promotion.backgroundColor))
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
         } catch (e: Exception) {
             PrimaryGreen
         }

@@ -51,10 +51,13 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchResults = MutableStateFlow<List<Product>>(emptyList())
     val searchResults: StateFlow<List<Product>> = _searchResults
     
+<<<<<<< HEAD
     // Search History from Room
     val searchHistory = searchHistoryDao.getRecentSearches()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     
+=======
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
     // Promotion State
     private val _promotions = MutableStateFlow<List<com.example.lankasmartmart.model.Promotion>>(emptyList())
     val promotions: StateFlow<List<com.example.lankasmartmart.model.Promotion>> = _promotions
@@ -63,7 +66,12 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         loadCategories()
         loadProducts()
         loadPromotions()
+<<<<<<< HEAD
         loadCartFromDatabase()
+=======
+        loadMockCartData() // Add some test items
+        updateCartCalculations()
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
     }
     
     // Load categories from Firestore (or use mock data)

@@ -2,7 +2,10 @@ package com.example.lankasmartmart.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+<<<<<<< HEAD
 import androidx.core.content.edit
+=======
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
 import com.example.lankasmartmart.viewmodel.UserData
 import com.google.gson.Gson
 
@@ -23,7 +26,11 @@ class UserSessionManager(context: Context) {
      */
     fun saveUserSession(userData: UserData) {
         val json = gson.toJson(userData)
+<<<<<<< HEAD
         prefs.edit {putString(KEY_USER_DATA, json)}
+=======
+        prefs.edit().putString(KEY_USER_DATA, json).apply()
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
     }
 
     /**
@@ -42,7 +49,11 @@ class UserSessionManager(context: Context) {
      * Clears the saved user data from local storage.
      */
     fun clearSession() {
+<<<<<<< HEAD
         prefs.edit {remove(KEY_USER_DATA)}
+=======
+        prefs.edit().remove(KEY_USER_DATA).apply()
+>>>>>>> 91ad457926b7ee01249bb02b9830ce902b91e9c8
     }
 
     /**
