@@ -36,36 +36,30 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFFFF0F0),
-                        Color(0xFFFFE8E8),
-                        Color.White
-                    )
-                )
-            )
+            .background(Color.White) // Background color updated to white
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start // Start alignment for content
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
-            // Logo
-            Image(
-                painter = painterResource(id = R.drawable.logo_large),
-                contentDescription = "Shopping Cart Logo",
-                modifier = Modifier.size(140.dp)
-            )
+            // Logo - Centered in the start-aligned column
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_large),
+                    contentDescription = "Shopping Cart Logo",
+                    modifier = Modifier.size(140.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Title
+            // Title - "Loging" typo to match screenshot
             Text(
-                text = "Login",
+                text = "Loging",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -73,16 +67,16 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Subtitle
+            // Subtitle - "emails" typo to match screenshot
             Text(
-                text = "Enter your email and password",
+                text = "Enter your emails and password",
                 fontSize = 14.sp,
                 color = Color(0xFF9E9E9E)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Email Field
+            // Email Field - Switching to underlined style
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -90,27 +84,30 @@ fun LoginScreen(
                     text = "Email",
                     fontSize = 14.sp,
                     color = Color(0xFF757575),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 0.dp) // Adjusted padding
                 )
-                OutlinedTextField(
+                TextField(
                     value = email,
                     onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("kaveesha7@gmail.com") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0),
+                        focusedLabelColor = Color.Transparent,
+                        unfocusedLabelColor = Color.Transparent
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    singleLine = true
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Password Field
+            // Password Field - Switching to underlined style
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -118,9 +115,9 @@ fun LoginScreen(
                     text = "Password",
                     fontSize = 14.sp,
                     color = Color(0xFF757575),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 0.dp) // Adjusted padding
                 )
-                OutlinedTextField(
+                TextField(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
@@ -135,13 +132,14 @@ fun LoginScreen(
                             )
                         }
                     },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color(0xFFE0E0E0),
+                        unfocusedIndicatorColor = Color(0xFFE0E0E0)
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    singleLine = true
                 )
             }
 
@@ -184,26 +182,28 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sign Up Link
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Don't have an account? ",
-                    fontSize = 14.sp,
-                    color = Color(0xFF757575)
-                )
-                TextButton(
-                    onClick = onSignUpClick,
-                    contentPadding = PaddingValues(0.dp)
+            // Sign Up Link - Bottom centered
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Sign Up",
+                        text = "Don't have an account? ",
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF5B7FFF)
+                        color = Color(0xFF757575)
                     )
+                    TextButton(
+                        onClick = onSignUpClick,
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Sign Up",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF5B7FFF)
+                        )
+                    }
                 }
             }
         }
